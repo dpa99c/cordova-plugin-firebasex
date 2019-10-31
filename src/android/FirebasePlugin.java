@@ -1013,7 +1013,7 @@ public class FirebasePlugin extends CordovaPlugin {
             String id = options.getString("id");
             Log.i(TAG, "Creating channel id="+id);
 
-            if(channelExists(id)){
+            if(channelExists(id, cordovaActivity)){
                 deleteChannel(id);
             }
 
@@ -1158,7 +1158,7 @@ public class FirebasePlugin extends CordovaPlugin {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 try {
-                    List<NotificationChannel> notificationChannels = listChannels();
+                    List<NotificationChannel> notificationChannels = listChannels(cordovaActivity);
                     JSONArray channels = new JSONArray();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         for (NotificationChannel notificationChannel : notificationChannels) {
@@ -1176,20 +1176,20 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
-    public static List<NotificationChannel> listChannels(){
+    public static List<NotificationChannel> listChannels(Context context){
         List<NotificationChannel> notificationChannels = null;
         // only call on Android O and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager nm = (NotificationManager) cordovaActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationChannels = nm.getNotificationChannels();
         }
         return notificationChannels;
     }
 
-    public static boolean channelExists(String channelId){
+    public static boolean channelExists(String channelId, Context context){
         boolean exists = false;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            List<NotificationChannel> notificationChannels = FirebasePlugin.listChannels();
+            List<NotificationChannel> notificationChannels = FirebasePlugin.listChannels(Context context);
             if(notificationChannels != null){
                 for (NotificationChannel notificationChannel : notificationChannels) {
                     if(notificationChannel.getId() == channelId){
