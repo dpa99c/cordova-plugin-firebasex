@@ -1189,7 +1189,7 @@ public class FirebasePlugin extends CordovaPlugin {
     public static boolean channelExists(String channelId, Context context){
         boolean exists = false;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            List<NotificationChannel> notificationChannels = FirebasePlugin.listChannels(Context context);
+            List<NotificationChannel> notificationChannels = FirebasePlugin.listChannels(context);
             if(notificationChannels != null){
                 for (NotificationChannel notificationChannel : notificationChannels) {
                     if(notificationChannel.getId() == channelId){
