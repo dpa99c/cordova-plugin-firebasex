@@ -805,7 +805,7 @@ In a data message, specify the `notification_ios_badge` key in the `data` sectio
 ### Data messages
 FCM data messages are sent as an arbitrary k/v structure and by default are passed to the app for it to handle them.
 
-**NOTE:** FCM data messages **cannot** be sent from the Firebase Console - they can only be sent via the FCM APIs.
+**NOTE:** FCM data messages can be sent via the FCM APIs and from the Firebase Console. The custom key-value pairs can be configured in the notification compose console under additional options.
 
 #### Data message notifications
 This plugin enables a data message to be displayed as a system notification.
