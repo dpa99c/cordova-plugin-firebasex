@@ -87,7 +87,6 @@ static NSDictionary* googlePlist;
     }
 }
 
-
 // Dynamic actions from pn-actions.json
 - (void)setActionableNotifications {
     
@@ -107,9 +106,19 @@ static NSDictionary* googlePlist;
         for (NSDictionary *action in actions) {
             NSString *actionId = [action objectForKey:@"id"];
             NSString *actionTitle = [action objectForKey:@"title"];
-        
+            UNNotificationActionOptions options = UNNotificationActionOptionNone;
+            
+            id mode = [action objectForKey:@"foreground"];
+            if (mode != nil && (([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"true"]) || [mode boolValue])) {
+                options |= UNNotificationActionOptionForeground;
+            }
+            id destructive = [action objectForKey:@"destructive"];
+            if (destructive != nil && (([destructive isKindOfClass:[NSString class]] && [destructive isEqualToString:@"true"]) || [destructive boolValue])) {
+                options |= UNNotificationActionOptionDestructive;
+            }
+            
             [buttons addObject:[UNNotificationAction actionWithIdentifier:actionId
-                title:NSLocalizedString(actionTitle, nil) options:UNNotificationActionOptionNone]];
+                title:NSLocalizedString(actionTitle, nil) options:options]];
         }
         
         [categories addObject:[UNNotificationCategory categoryWithIdentifier:category
