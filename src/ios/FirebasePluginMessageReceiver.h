@@ -1,5 +1,6 @@
-#import <Foundation/Foundation.h>
+#import "FirebasePluginMessageReceiver.h"
 
-@interface FirebasePluginMessageReceiver : NSObject {}
-- (bool) sendNotification:(NSDictionary *)userInfo;
+@interface FirebasePluginMessageReceiverManager
++ (void) register:(FirebasePluginMessageReceiver *)receiver;
++ (bool) sendNotification:(NSDictionary *)userInfo;
 @end
