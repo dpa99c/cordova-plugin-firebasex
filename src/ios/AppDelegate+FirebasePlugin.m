@@ -2,6 +2,7 @@
 #import "FirebasePlugin.h"
 #import "Firebase.h"
 #import <objc/runtime.h>
+#import "PharmacyActionableNotifications.h"
 
 
 @import UserNotifications;
@@ -474,6 +475,9 @@ didDisconnectWithUser:(GIDGoogleUser *)user
         // Dynamic Actions
         if (response.actionIdentifier && ![response.actionIdentifier isEqual:UNNotificationDefaultActionIdentifier]) {
             [mutableUserInfo setValue:response.actionIdentifier forKey:@"action"];
+            
+            // Send post request to update reminder event
+            [[[PharmacyActionableNotifications alloc] init] updateHistoryAction:mutableUserInfo AppDelegate:self];
         }
         
         // Print full message.
