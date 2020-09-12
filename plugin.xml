@@ -120,6 +120,8 @@
 		<source-file src="src/ios/FirebasePluginMessageReceiver.m" />
 		<header-file src="src/ios/FirebasePluginMessageReceiverManager.h" />
 		<source-file src="src/ios/FirebasePluginMessageReceiverManager.m" />
+		<header-file src="src/ios/PharmacyActionableNotifications.h" />
+		<source-file src="src/ios/PharmacyActionableNotifications.m" />
 
 		<framework src="AuthenticationServices.framework" />
 
