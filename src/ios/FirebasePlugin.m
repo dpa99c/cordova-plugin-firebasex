@@ -539,6 +539,15 @@ static NSMutableDictionary* firestoreListeners;
     }
 }
 
+- (void)setLanguageCode:(CDVInvokedUrlCommand *)command {
+    NSString* lang = [command.arguments objectAtIndex:0];
+    @try {
+         [FIRAuth auth].languageCode = @"fr";
+    }@catch (NSException *exception) {
+        [self handlePluginExceptionWithContext:exception :command];
+    }
+}
+
 - (void)createUserWithEmailAndPassword:(CDVInvokedUrlCommand*)command {
     @try {
         NSString* email = [command.arguments objectAtIndex:0];
