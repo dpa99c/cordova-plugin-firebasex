@@ -259,6 +259,8 @@ public class FirebasePlugin extends CordovaPlugin {
 
             } else if (action.equals("verifyPhoneNumber")) {
                 this.verifyPhoneNumber(callbackContext, args);
+            } else if (action.equals("setLanguageCode")) {
+                this.setLanguageCode(callbackContext, args);
             } else if (action.equals("authenticateUserWithGoogle")) {
                 this.authenticateUserWithGoogle(callbackContext, args);
             } else if (action.equals("authenticateUserWithApple")) {
@@ -1449,6 +1451,27 @@ public class FirebasePlugin extends CordovaPlugin {
                             TimeUnit.SECONDS, // Unit of timeout
                             cordovaActivity, // Activity (for callback binding)
                             mCallbacks); // OnVerificationStateChangedCallbacks
+                } catch (Exception e) {
+                    handleExceptionWithContext(e, callbackContext);
+                }
+            }
+        });
+    }
+
+    public void setLanguageCode(final CallbackContext callbackContext, final JSONArray args){
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                try {
+                    String lang = args.getString(0);
+
+                    if(lang == null || lang.equals("")){
+                        callbackContext.error("Lang must be specified");
+                        return;
+                    }
+
+                    FirebaseAuth.getInstance().setLanguageCode(lang);
+
+                    Log.d(TAG, "Language code setted to "+lang);
                 } catch (Exception e) {
                     handleExceptionWithContext(e, callbackContext);
                 }

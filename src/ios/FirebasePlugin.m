@@ -542,7 +542,8 @@ static NSMutableDictionary* firestoreListeners;
 - (void)setLanguageCode:(CDVInvokedUrlCommand *)command {
     NSString* lang = [command.arguments objectAtIndex:0];
     @try {
-         [FIRAuth auth].languageCode = @"fr";
+         [FIRAuth auth].languageCode = lang;
+         NSLog(@"Language code setted to %@!", lang);
     }@catch (NSException *exception) {
         [self handlePluginExceptionWithContext:exception :command];
     }
