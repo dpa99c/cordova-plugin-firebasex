@@ -6,11 +6,12 @@ labels: ''
 assignees: ''
 
 ---
-
 <!--
 WARNING: Failure to follow the issue template guidelines below will result in the issue being immediately closed.
 
 Only feature requests should be opened here.
+
+Before opening an issue, please read [Reporting issues](https://github.com/dpa99c/cordova-plugin-firebasex#reporting-issues)
 
 -->
 

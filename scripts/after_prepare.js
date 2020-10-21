@@ -8,116 +8,140 @@
  * Credits: https://github.com/arnesson.
  */
 var fs = require('fs');
-var path = require('path');
-var Q = require('q');
-var parser = new (require('xml2js')).Parser();
-
+var path = require("path");
 var utilities = require("./lib/utilities");
 
-var config = fs.readFileSync('config.xml').toString();
-var name = utilities.getValue(config, 'name');
-if (name.includes('&amp;')) {
-    name = name.replace(/&amp;/g, '&');
-}
+var appName;
 var pluginVariables = {};
 
 var IOS_DIR = 'platforms/ios';
 var ANDROID_DIR = 'platforms/android';
-var PLUGIN_ID = 'cordova-plugin-firebasex';
+var PLUGIN_ID;
 
-var PLATFORM = {
-  IOS: {
-    dest: IOS_DIR + '/' + name + '/Resources/GoogleService-Info.plist',
-    src: [
-      'GoogleService-Info.plist',
-      IOS_DIR + '/www/GoogleService-Info.plist',
-      'www/GoogleService-Info.plist'
-    ],
-    appPlist: IOS_DIR + '/' + name + '/'+name+'-Info.plist',
-  },
-  ANDROID: {
-    dest: ANDROID_DIR + '/app/google-services.json',
-    src: [
-      'google-services.json',
-      ANDROID_DIR + '/assets/www/google-services.json',
-      'www/google-services.json',
-      ANDROID_DIR + '/app/src/main/google-services.json'
-    ],
-  }
-};
+var PLATFORM;
 
-var parsePluginVariables = function(){
-  const deferred = Q.defer();
-  var parseConfigXml = function () {
-    parser.parseString(config, function (err, data) {
-      if (data.widget.platform) {
-        (data.widget.plugin || []).forEach(function (plugin) {
-          (plugin.variable || []).forEach(function (variable) {
-            if((plugin.$.name === PLUGIN_ID || plugin.$.id === PLUGIN_ID) && variable.$.name && variable.$.value){
-              pluginVariables[variable.$.name] = variable.$.value;
+var setupEnv = function(){
+    appName = utilities.getAppName();
+    PLUGIN_ID = utilities.getPluginId();
+    PLATFORM = {
+        IOS: {
+            dest: IOS_DIR + '/' + appName + '/Resources/GoogleService-Info.plist',
+            src: [
+                'GoogleService-Info.plist',
+                IOS_DIR + '/www/GoogleService-Info.plist',
+                'www/GoogleService-Info.plist'
+            ],
+            appPlist: IOS_DIR + '/' + appName + '/' + appName + '-Info.plist',
+            entitlementsDebugPlist: IOS_DIR + '/' + appName + '/Entitlements-Debug.plist',
+            entitlementsReleasePlist: IOS_DIR + '/' + appName + '/Entitlements-Release.plist',
+        },
+        ANDROID: {
+            dest: ANDROID_DIR + '/app/google-services.json',
+            src: [
+                'google-services.json',
+                ANDROID_DIR + '/assets/www/google-services.json',
+                'www/google-services.json',
+                ANDROID_DIR + '/app/src/main/google-services.json'
+            ],
+            colorsXml: {
+                src: './plugins/' + utilities.getPluginId() + '/src/android/colors.xml',
+                target: ANDROID_DIR + '/app/src/main/res/values/colors.xml'
+            },
+            performanceGradlePlugin: {
+                classDef: 'com.google.firebase:perf-plugin',
+                pluginDef: 'com.google.firebase.firebase-perf'
             }
-          });
-        });
-        deferred.resolve();
-      }
-    });
-    return deferred.promise;
-  };
-
-  var parsePackageJson = function(){
-    const deferred = Q.defer();
-    var packageJSON = JSON.parse(fs.readFileSync('./package.json'));
-    if(packageJSON.cordova && packageJSON.cordova.plugins){
-      for(const pluginId in packageJSON.cordova.plugins){
-        if(pluginId === PLUGIN_ID){
-          for(const varName in packageJSON.cordova.plugins[pluginId]){
-            var varValue = packageJSON.cordova.plugins[pluginId][varName];
-            pluginVariables[varName] = varValue;
-          }
         }
-      }
+    };
+}
+
+module.exports = function(context){
+    //get platform from the context supplied by cordova
+    var platforms = context.opts.platforms;
+    utilities.setContext(context);
+    setupEnv();
+
+    pluginVariables = utilities.parsePluginVariables();
+
+    // set platform key path from plugin variable
+    if(pluginVariables.ANDROID_FIREBASE_CONFIG_FILEPATH) PLATFORM.ANDROID.src = [pluginVariables.ANDROID_FIREBASE_CONFIG_FILEPATH];
+    if(pluginVariables.IOS_FIREBASE_CONFIG_FILEPATH) PLATFORM.IOS.src = [pluginVariables.IOS_FIREBASE_CONFIG_FILEPATH];
+
+
+    // Copy key files to their platform specific folders
+    if(platforms.indexOf('android') !== -1 && utilities.directoryExists(ANDROID_DIR)){
+        utilities.log('Preparing Firebase on Android');
+        utilities.copyKey(PLATFORM.ANDROID);
+
+        var androidHelper = require("./lib/android");
+
+        // Apply colours
+        if(!fs.existsSync(path.resolve(PLATFORM.ANDROID.colorsXml.target))){
+            fs.copyFileSync(path.resolve(PLATFORM.ANDROID.colorsXml.src), path.resolve(PLATFORM.ANDROID.colorsXml.target));
+        }
+
+        const $colorsXml = utilities.parseXmlFileToJson(PLATFORM.ANDROID.colorsXml.target, {compact: true});
+        var accentColor = pluginVariables.ANDROID_ICON_ACCENT,
+            $resources = $colorsXml.resources,
+            existingAccent = false,
+            writeChanges = false;
+
+        if($resources.color){
+            var $colors = $resources.color.length ? $resources.color : [$resources.color];
+            $colors.forEach(function($color){
+                if($color._attributes.name === 'accent'){
+                    existingAccent = true;
+                    if($color._text !== accentColor){
+                        $color._text = accentColor;
+                        writeChanges = true;
+                    }
+                }
+            });
+        }else{
+            $resources.color = {};
+        }
+
+        if(!existingAccent){
+            var $accentColor = {
+                _attributes: {
+                    name: 'accent'
+                },
+                _text: accentColor
+            };
+            if($resources.color && Object.keys($resources.color).length){
+                if(typeof $resources.color.length === 'undefined'){
+                    $resources.color = [$resources.color];
+                }
+                $resources.color.push($accentColor)
+            }else{
+                $resources.color = $accentColor;
+            }
+            writeChanges = true;
+        }
+
+        if(writeChanges){
+            utilities.writeJsonToXmlFile($colorsXml, PLATFORM.ANDROID.colorsXml.target);
+            utilities.log('Updated colors.xml with accent color');
+        }
+
+        if(pluginVariables['ANDROID_FIREBASE_PERFORMANCE_MONITORING'] && pluginVariables['ANDROID_FIREBASE_PERFORMANCE_MONITORING'] === 'true'){
+            // Add Performance Monitoring gradle plugin for Android network traffic
+            androidHelper.addDependencyToRootGradle(PLATFORM.ANDROID.performanceGradlePlugin.classDef+":"+pluginVariables["ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION"]);
+            androidHelper.applyPluginToAppGradle(PLATFORM.ANDROID.performanceGradlePlugin.pluginDef);
+        }
     }
-    deferred.resolve();
-    return deferred.promise;
-  };
 
-  return parseConfigXml().then(parsePackageJson);
-};
+    if(platforms.indexOf('ios') !== -1 && utilities.directoryExists(IOS_DIR)){
+        utilities.log('Preparing Firebase on iOS');
+        utilities.copyKey(PLATFORM.IOS);
 
-module.exports = function (context) {
-  const deferred = Q.defer();
+        var helper = require("./ios/helper");
+        var xcodeProjectPath = helper.getXcodeProjectPath();
+        helper.ensureRunpathSearchPath(context, xcodeProjectPath);
 
-  //get platform from the context supplied by cordova
-  var platforms = context.opts.platforms;
-
-  // Copy key files to their platform specific folders
-  if (platforms.indexOf('android') !== -1 && utilities.directoryExists(ANDROID_DIR)) {
-    console.log('Preparing Firebase on Android');
-    utilities.copyKey(PLATFORM.ANDROID);
-  }
-
-  if (platforms.indexOf('ios') !== -1 && utilities.directoryExists(IOS_DIR)) {
-    console.log('Preparing Firebase on iOS');
-    utilities.copyKey(PLATFORM.IOS);
-
-    var helper = require("./ios/helper");
-    helper.getXcodeProjectPath(function(xcodeProjectPath){
-      helper.ensureRunpathSearchPath(context, xcodeProjectPath);
-    });
-
-    parsePluginVariables().then(function(){
-      if(pluginVariables['IOS_STRIP_DEBUG'] && pluginVariables['IOS_STRIP_DEBUG'] === 'true'){
-        helper.stripDebugSymbols();
-      }
-      helper.applyPluginVarsToPlists(PLATFORM.IOS.dest, PLATFORM.IOS.appPlist, pluginVariables);
-
-      deferred.resolve();
-    }).catch(error => {
-      deferred.reject(error);
-    });
-  }else{
-    deferred.resolve();
-  }
-
-  return deferred.promise;
+        if(pluginVariables['IOS_STRIP_DEBUG'] && pluginVariables['IOS_STRIP_DEBUG'] === 'true'){
+            helper.stripDebugSymbols();
+        }
+        helper.applyPluginVarsToPlists(pluginVariables, PLATFORM.IOS);
+    }
 };

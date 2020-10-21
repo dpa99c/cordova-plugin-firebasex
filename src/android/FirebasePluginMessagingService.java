@@ -17,7 +17,7 @@ import android.text.TextUtils;
 import android.content.ContentResolver;
 import android.graphics.Color;
 
-import com.crashlytics.android.Crashlytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -78,6 +78,10 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
 
                 // Don't process the message in this method.
                 return;
+            }
+
+            if(FirebasePlugin.applicationContext == null){
+                FirebasePlugin.applicationContext = this.getApplicationContext();
             }
 
             // TODO(developer): Handle FCM messages here.
@@ -194,7 +198,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Channel
-            if(channelId == null || FirebasePlugin.channelExists(channelId)){
+            if(channelId == null || !FirebasePlugin.channelExists(channelId)){
                 channelId = FirebasePlugin.defaultChannelId;
             }
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
@@ -283,17 +287,16 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 }
 
                 int largeIconResID;
-                if (customLargeIconResID != 0) {
-                    largeIconResID = customLargeIconResID;
-                    Log.d(TAG, "Large icon: custom="+icon);
-                }else if (defaultLargeIconResID != 0) {
-                    Log.d(TAG, "Large icon: default="+defaultLargeIconName);
-                    largeIconResID = defaultLargeIconResID;
-                } else {
-                    Log.d(TAG, "Large icon: application");
-                    largeIconResID = getApplicationInfo().icon;
+                if (customLargeIconResID != 0 || defaultLargeIconResID != 0) {
+					if (customLargeIconResID != 0) {
+	                    largeIconResID = customLargeIconResID;
+	                    Log.d(TAG, "Large icon: custom="+icon);
+	                }else{
+	                    Log.d(TAG, "Large icon: default="+defaultLargeIconName);
+	                    largeIconResID = defaultLargeIconResID;
+	                }
+	                notificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getApplicationContext().getResources(), largeIconResID));
                 }
-                notificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getApplicationContext().getResources(), largeIconResID));
             }
 
             // Color
