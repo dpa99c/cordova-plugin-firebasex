@@ -137,6 +137,9 @@ didSignInForUser:(GIDGoogleUser *)user
             NSMutableDictionary* result = [[NSMutableDictionary alloc] init];
             [result setValue:@"true" forKey:@"instantVerification"];
             [result setValue:key forKey:@"id"];
+            [result setValue:authentication.idToken forKey:@"idToken"];
+            [result setValue:authentication.accessToken forKey:@"accessToken"];
+
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
         } else {
           pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error.description];
