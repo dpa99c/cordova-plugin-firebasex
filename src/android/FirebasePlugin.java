@@ -453,6 +453,8 @@ public class FirebasePlugin extends CordovaPlugin {
                     JSONObject returnResults = new JSONObject();
                     returnResults.put("instantVerification", true);
                     returnResults.put("id", id);
+                    returnResults.put("idToken", acct.getIdToken());
+                    returnResults.put("accessToken", acct.getServerAuthCode());
                     FirebasePlugin.activityResultCallbackContext.success(returnResults);
                     break;
             }
