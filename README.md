@@ -152,6 +152,10 @@ To help ensure this plugin is kept updated, new features are added and bugfixes 
     - [linkUserWithCredential](#linkuserwithcredential)
     - [reauthenticateWithCredential](#reauthenticatewithcredential)
     - [registerAuthStateChangeListener](#registerauthstatechangelistener)
+  - [Firebase Web JS SDK](#authenticate-firebase-web-js-sdk)
+    - [authenticateUserWithApple](#authenticateuserwithapple-web-js-sdk)
+    - [authenticateUserWithGoogle](#authenticateuserwithgoogle-web-js-sdk)
+    - [verifyPhoneNumber](#verifyphonenumber-web-js-sdk)
   - [Remote Config](#remote-config)
     - [fetch](#fetch)
     - [activateFetched](#activatefetched)
@@ -2836,6 +2840,60 @@ Example usage:
     FirebasePlugin.registerAuthStateChangeListener(function(userSignedIn){
         console.log("Auth state changed: User signed " + (userSignedIn ? "in" : "out"));
     });
+```
+
+## Authenticate Firebase Web JS SDK
+
+**Experimental:** Passing authentication to the [Firebase JavaScript SDK](https://firebase.google.com/docs/reference/js) is possible for some [Firebase Authentication operations](#authentication) that are exposed by this plugin, but this is highly experimental. Please note that mixing variables from the native (plugin) and the JavaScript SDK should be avoided as it to will lead to unexpected behaviour. 
+
+
+### authenticateUserWithApple (Web JS SDK)
+
+_Passing authentication from `authenticateUserWithApple` is currently unsupported_
+
+
+### authenticateUserWithGoogle (Web JS SDK)
+
+_Possible since release 13.0.0_
+
+```javascript
+var clientId = '[secret].apps.googleusercontent.com';
+// Trigger plugin native authentication layer
+FirebasePlugin.authenticateUserWithGoogle(clientId, function (credential) {
+    var { idToken } = credential; // Extract idToken
+    //Login to Firebase JS SDK
+    firebase.auth.GoogleAuthProvider.credential(idToken);
+}, function () {
+    //err
+});
+```
+
+### verifyPhoneNumber (Web JS SDK)
+
+_NOTE: As of release 8.0.0 passing authentication is no longer possible if `instantVerification: true`_
+
+```javascript
+var phonenumber;
+var timeout;
+FirebasePlugin.verifyPhoneNumber(function (credentials) {
+    // Success
+    if (credentials.instantVerification) {
+        return alert('passing authentication with instantVerification not possible as of release 8.0.0');
+    }
+    promptUserToInputCode() // you need to implement this
+        .then(function (userEnteredSMSCode) {
+            credential.code = userEnteredSMSCode;
+            //Login to Firebase JS SDK
+            var webCredential = firebase.auth.PhoneAuthProvider.credential(credential.verificationId, credential.code);
+            return firebase.auth().signInWithCredential(webCredential);
+        });
+},
+    function () {
+        //err
+    },
+    phonenumber,
+    timeout
+);
 ```
 
 ## Remote Config
