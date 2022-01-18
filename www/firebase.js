@@ -368,6 +368,11 @@ exports.linkUserWithCredential = function (credential, success, error) {
     exec(success, handleAuthErrorResult(error), "FirebasePlugin", "linkUserWithCredential", [credential]);
 };
 
+exports.unlinkUserWithProvider = function (providerId, success, error) {
+    if(typeof providerId !== 'string' || !providerId) return error("'providerId' must be a valid string");
+    exec(success, error, "FirebasePlugin", "unlinkUserWithProvider", [providerId]);
+};
+
 exports.reauthenticateWithCredential = function (credential, success, error) {
     if(typeof credential !== 'object') return error("'credential' must be an object");
     exec(success, handleAuthErrorResult(error), "FirebasePlugin", "reauthenticateWithCredential", [credential]);
@@ -380,7 +385,6 @@ exports.isUserSignedIn = function (success, error) {
 exports.signOutUser = function (success, error) {
     exec(ensureBooleanFn(success), error, "FirebasePlugin", "signOutUser", []);
 };
-
 
 exports.getCurrentUser = function (success, error) {
     exec(function(user){

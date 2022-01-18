@@ -340,6 +340,8 @@ public class FirebasePlugin extends CordovaPlugin {
                 this.signInWithCredential(callbackContext, args);
             } else if (action.equals("linkUserWithCredential")) {
                 this.linkUserWithCredential(callbackContext, args);
+            } else if (action.equals("unlinkUserWithProvider")) {
+                this.unlinkUserWithProvider(callbackContext, args);    
             } else if (action.equals("reauthenticateWithCredential")) {
                 this.reauthenticateWithCredential(callbackContext, args);
             } else if (action.equals("isUserSignedIn")) {
@@ -1540,6 +1542,25 @@ public class FirebasePlugin extends CordovaPlugin {
                     //ELSE
                     callbackContext.error("Specified native auth credential id does not exist");
 
+                } catch (Exception e) {
+                    handleExceptionWithContext(e, callbackContext);
+                }
+            }
+        });
+    }
+
+    public void unlinkUserWithProvider(final CallbackContext callbackContext, final JSONArray args){
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                try {
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    if(user == null){
+                        callbackContext.error("No user is currently signed");
+                        return;
+                    }
+
+                    String providerId = args.getString(0);
+                    user.unlink(providerId).addOnCompleteListener(cordova.getActivity(), new AuthResultOnCompleteListener(callbackContext));
                 } catch (Exception e) {
                     handleExceptionWithContext(e, callbackContext);
                 }
