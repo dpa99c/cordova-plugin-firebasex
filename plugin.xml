@@ -151,7 +151,7 @@
 				<pod name="Firebase/Performance" spec="9.1.0"/>
 				<pod name="Firebase/RemoteConfig" spec="9.1.0"/>
 				<pod name="Firebase/InAppMessaging" spec="9.1.0"/>
-				<pod name="FirebaseFirestore" git="https://github.com/invertase/firestore-ios-sdk-frameworks.git" tag="9.1.0"/>
+				<pod name="Firebase/Firestore" spec="9.1.0"/>
 				<pod name="Firebase/Crashlytics" spec="9.1.0"/>
 				<pod name="Firebase/Functions" spec="9.1.0"/>
 				<pod name="Firebase/Installations" spec="9.1.0"/>
