@@ -71,7 +71,7 @@ static NSMutableDictionary* traces;
         googlePlist = [NSMutableDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"GoogleService-Info" ofType:@"plist"]];
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationLaunchedWithUrl:) name:CDVPluginHandleOpenURLNotification object:nil];
-        
+
         if([self getGooglePlistFlagWithDefaultValue:FirebaseCrashlyticsCollectionEnabled defaultValue:YES]){
             [self setPreferenceFlag:FIREBASE_CRASHLYTICS_COLLECTION_ENABLED flag:YES];
         }
@@ -1496,6 +1496,22 @@ static NSMutableDictionary* traces;
     }];
 }
 
+- (void)getKeysAndValuesWithPrefix:(CDVInvokedUrlCommand *)command {
+    [self.commandDelegate runInBackground:^{
+        NSString* prefix = [command.arguments objectAtIndex:0];
+        FIRRemoteConfig* remoteConfig = [FIRRemoteConfig remoteConfig];
+        NSSet<NSString*>* keys = [remoteConfig keysWithPrefix:prefix];
+
+        NSMutableDictionary *keysAndValues = [[NSMutableDictionary alloc] initWithCapacity:keys.count];
+        for (NSString *key in keys) {
+            [keysAndValues setValue:remoteConfig[key].stringValue forKey:key];
+        }
+
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:keysAndValues];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    }];
+}
+
 - (void)fetch:(CDVInvokedUrlCommand *)command {
     [self.commandDelegate runInBackground:^{
         @try {
@@ -2525,4 +2541,39 @@ static NSMutableDictionary* traces;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
 }
+
+//
+// Dynamic Links
+//
+#pragma mark - Dynamic Links
+
+- (void)onDynamicLink:(CDVInvokedUrlCommand *)command {
+    self.dynamicLinkCallbackId = command.callbackId;
+
+    if (self.cachedDynamicLinkData) {
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:self.cachedDynamicLinkData];
+        [pluginResult setKeepCallbackAsBool:YES];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.dynamicLinkCallbackId];
+
+        self.cachedDynamicLinkData = nil;
+    }
+}
+
+- (void)postDynamicLink:(FIRDynamicLink*) dynamicLink {
+    NSMutableDictionary *data = [NSMutableDictionary dictionary];
+    NSString* absoluteUrl = dynamicLink.url.absoluteString;
+    BOOL weakConfidence = (dynamicLink.matchType == FIRDLMatchTypeWeak);
+
+    [data setObject:(absoluteUrl ? absoluteUrl : @"") forKey:@"deepLink"];
+    [data setObject:(weakConfidence ? @"Weak" : @"Strong") forKey:@"matchType"];
+
+    if (self.dynamicLinkCallbackId) {
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:data];
+        [pluginResult setKeepCallbackAsBool:YES];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.dynamicLinkCallbackId];
+    } else {
+        self.cachedDynamicLinkData = data;
+    }
+}
+
 @end

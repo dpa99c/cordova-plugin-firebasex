@@ -86,7 +86,7 @@
 - (void)resetRemoteConfig:(CDVInvokedUrlCommand*)command;
 - (void)setConfigSettings:(CDVInvokedUrlCommand*)command;
 - (void)setDefaults:(CDVInvokedUrlCommand*)command;
-
+- (void)getKeysAndValuesWithPrefix:(CDVInvokedUrlCommand *)command;
 
 // Performance
 - (void)setPerformanceCollectionEnabled:(CDVInvokedUrlCommand*)command;
@@ -141,5 +141,11 @@
 
 @property (nonatomic, retain) NSMutableArray *notificationStack;
 @property(nonatomic, nullable) id<NSObject> installationIDObserver;
+
+// Dynamic Links
+@property (nonatomic, copy) NSString *dynamicLinkCallbackId;
+@property (nonatomic, retain) NSDictionary* cachedDynamicLinkData;
+- (void)onDynamicLink:(CDVInvokedUrlCommand *)command;
+- (void)postDynamicLink:(FIRDynamicLink*) dynamicLink;
 
 @end
