@@ -1309,32 +1309,6 @@ static NSMutableDictionary* traces;
     }];
 }
 
-- (void)setConfigSettings:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        NSDictionary *settings = [command.arguments objectAtIndex:0];
-
-        BOOL devMode = [[settings objectForKey:@"developerModeEnabled"] boolValue];
-
-        FIRRemoteConfig* remoteConfig = [FIRRemoteConfig remoteConfig];
-        remoteConfig.configSettings = [[FIRRemoteConfigSettings alloc] initWithDeveloperModeEnabled:devMode];
-
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }];
-}
-
-- (void)setDefaults:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        NSDictionary *defaults = [command.arguments objectAtIndex:0];
-
-        FIRRemoteConfig* remoteConfig = [FIRRemoteConfig remoteConfig];
-        [remoteConfig setDefaults:defaults];
-
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }];
-}
-
 /*
  * Crashlytics
  */
@@ -1519,6 +1493,22 @@ static NSMutableDictionary* traces;
         }@catch (NSException *exception) {
             [self handlePluginExceptionWithContext:exception :command];
         }
+    }];
+}
+
+- (void)getKeysAndValuesWithPrefix:(CDVInvokedUrlCommand *)command {
+    [self.commandDelegate runInBackground:^{
+        NSString* prefix = [command.arguments objectAtIndex:0];
+        FIRRemoteConfig* remoteConfig = [FIRRemoteConfig remoteConfig];
+        NSSet<NSString*>* keys = [remoteConfig keysWithPrefix:prefix];
+
+        NSMutableDictionary *keysAndValues = [[NSMutableDictionary alloc] initWithCapacity:keys.count];
+        for (NSString *key in keys) {
+            [keysAndValues setValue:remoteConfig[key].stringValue forKey:key];
+        }
+
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:keysAndValues];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
 }
 

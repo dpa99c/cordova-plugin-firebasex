@@ -17,6 +17,9 @@
 	<preference name="FIREBASE_CRASHLYTICS_COLLECTION_ENABLED" default="true" />
 	<preference name="FIREBASE_FCM_AUTOINIT_ENABLED" default="true" />
 
+	<preference name="APP_DOMAIN" />
+	<preference name="APP_PATH" default ="/" />
+
 	<platform name="android">
 		<preference name="ANDROID_ICON_ACCENT" default="#FF00FFFF" />
 		<preference name="ANDROID_FIREBASE_PERFORMANCE_MONITORING" default="false" />
@@ -34,6 +37,8 @@
 			<uses-permission android:name="android.permission.INTERNET" />
 			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 			<uses-permission android:name="android.permission.WAKE_LOCK" />
+			<data android:scheme="http" android:host="$APP_DOMAIN" android:pathPrefix="$APP_PATH"/>
+			<data android:scheme="https" android:host="$APP_DOMAIN" android:pathPrefix="$APP_PATH"/>
 		</config-file>
 		<config-file target="AndroidManifest.xml" parent="application">
 			<service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService" />
@@ -122,6 +127,17 @@
 			<string>production</string>
 		</config-file>
 
+		<config-file parent="com.apple.developer.associated-domains" target="*/Entitlements-Debug.plist">
+			<array>
+				<string>applinks:$APP_DOMAIN</string>
+			</array>
+		</config-file>
+
+		<config-file parent="com.apple.developer.associated-domains" target="*/Entitlements-Release.plist">
+			<array>
+				<string>applinks:$APP_DOMAIN</string>
+			</array>
+		</config-file>
 
 		<config-file target="*-Info.plist" parent="UIBackgroundModes">
 			<array>
