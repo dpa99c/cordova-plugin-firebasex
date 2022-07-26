@@ -16,6 +16,7 @@ var ensureBoolean = function(value){
 };
 
 var onAuthStateChangeCallback = function(){};
+var onIdTokenChangeCallback =  function(){};
 var onInstallationIdChangeCallback = function(){};
 
 /***********************
@@ -23,6 +24,10 @@ var onInstallationIdChangeCallback = function(){};
  ***********************/
 exports._onAuthStateChange = function(userSignedIn){
     onAuthStateChangeCallback(userSignedIn);
+};
+
+exports._onIdTokenChange = function(userSignedIn){
+  onIdTokenChangeCallback(userSignedIn);
 };
 
 exports._onInstallationIdChangeCallback = function(installationId){
@@ -299,6 +304,10 @@ exports.authenticateUserWithApple = function (success, error, locale) {
     exec(success, error, "FirebasePlugin", "authenticateUserWithApple", [locale]);
 };
 
+exports.authenticateUserWithMicrosoft = function (success, error, locale) {
+  exec(success, error, "FirebasePlugin", "authenticateUserWithMicrosoft", [locale]);
+};
+
 exports.signInWithCredential = function (credential, success, error) {
     if(typeof credential !== 'object') return error("'credential' must be an object");
     exec(success, error, "FirebasePlugin", "signInWithCredential", [credential]);
@@ -368,6 +377,11 @@ exports.deleteUser = function (success, error) {
 exports.registerAuthStateChangeListener = function(fn){
     if(typeof fn !== "function") throw "The specified argument must be a function";
     onAuthStateChangeCallback = fn;
+};
+
+exports.registerIdTokenChangeListener = function(fn){
+  if(typeof fn !== "function") throw "The specified argument must be a function";
+  onIdTokenChangeCallback = fn;
 };
 
 exports.useAuthEmulator = function (host, port, success, error) {
