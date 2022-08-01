@@ -43,6 +43,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.OAuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -111,6 +112,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
+
 import static android.content.Context.MODE_PRIVATE;
 
 public class FirebasePlugin extends CordovaPlugin {
@@ -122,7 +124,6 @@ public class FirebasePlugin extends CordovaPlugin {
     private FirebaseFunctions functions;
     private Gson gson;
     private FirebaseAuth.AuthStateListener authStateListener;
-    private FirebaseAuth.IdTokenListener idTokenListener;
     private boolean authStateChangeListenerInitialized = false;
     private static CordovaInterface cordovaInterface = null;
     protected static Context applicationContext = null;
@@ -183,9 +184,6 @@ public class FirebasePlugin extends CordovaPlugin {
 
                     authStateListener = new AuthStateListener();
                     FirebaseAuth.getInstance().addAuthStateListener(authStateListener);
-
-                    idTokenListener = new IdTokenListener();
-                    FirebaseAuth.getInstance().addIdTokenListener(idTokenListener);
 
                     firestore = FirebaseFirestore.getInstance();
                     functions = FirebaseFunctions.getInstance();
@@ -435,7 +433,6 @@ public class FirebasePlugin extends CordovaPlugin {
     @Override
     public void onDestroy() {
         FirebaseAuth.getInstance().removeAuthStateListener(authStateListener);
-        FirebaseAuth.getInstance().removeIdTokenListener(idTokenListener);
         instance = null;
         cordovaActivity = null;
         cordovaInterface = null;
@@ -3084,8 +3081,6 @@ public class FirebasePlugin extends CordovaPlugin {
         @Override
         public void onSuccess(AuthResult authResult) {
             Log.d(TAG, "AuthResult:onSuccess:" + authResult);
-            // String idToken = authResult.getCredential();
-            // Log.d(TAG, idToken);
             if(FirebasePlugin.instance.authResultCallbackContext != null){
                 FirebasePlugin.instance.authResultCallbackContext.success();
             }
@@ -3130,18 +3125,6 @@ public class FirebasePlugin extends CordovaPlugin {
             }
         }
     }
-
-    private static class IdTokenListener implements FirebaseAuth.IdTokenListener {
-      @Override
-      public void onIdTokenChanged(@NonNull FirebaseAuth firebaseAuth) {
-          try {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            FirebasePlugin.instance.executeGlobalJavascript(JS_GLOBAL_NAMESPACE+"_onIdTokenChange("+(user != null ? "true" : "false")+")");
-          } catch (Exception e) {
-              handleExceptionWithoutContext(e);
-          }
-      }
-  }
 
     private Map<String, Object> jsonStringToMap(String jsonString)  throws JSONException {
         Type type = new TypeToken<Map<String, Object>>(){}.getType();

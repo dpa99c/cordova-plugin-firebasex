@@ -16,7 +16,6 @@ var ensureBoolean = function(value){
 };
 
 var onAuthStateChangeCallback = function(){};
-var onIdTokenChangeCallback =  function(){};
 var onInstallationIdChangeCallback = function(){};
 
 /***********************
@@ -24,10 +23,6 @@ var onInstallationIdChangeCallback = function(){};
  ***********************/
 exports._onAuthStateChange = function(userSignedIn){
     onAuthStateChangeCallback(userSignedIn);
-};
-
-exports._onIdTokenChange = function(userSignedIn){
-  onIdTokenChangeCallback(userSignedIn);
 };
 
 exports._onInstallationIdChangeCallback = function(installationId){
@@ -377,11 +372,6 @@ exports.deleteUser = function (success, error) {
 exports.registerAuthStateChangeListener = function(fn){
     if(typeof fn !== "function") throw "The specified argument must be a function";
     onAuthStateChangeCallback = fn;
-};
-
-exports.registerIdTokenChangeListener = function(fn){
-  if(typeof fn !== "function") throw "The specified argument must be a function";
-  onIdTokenChangeCallback = fn;
 };
 
 exports.useAuthEmulator = function (host, port, success, error) {

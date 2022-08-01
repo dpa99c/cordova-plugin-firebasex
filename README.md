@@ -148,6 +148,7 @@ To help ensure this plugin is kept updated, new features are added and bugfixes 
     - [authenticateUserWithGoogle](#authenticateuserwithgoogle)
       - [Android](#android-3)
     - [authenticateUserWithApple](#authenticateuserwithapple)
+    - [authenticateUserWithMicrosoft](#authenticateuserwithmicrosoft)
       - [iOS](#ios-3)
       - [Android](#android-4)
     - [signInWithCredential](#signinwithcredential)
@@ -2822,6 +2823,30 @@ To use Sign In with Apple in your iOS app you need to do the following:
 #### Android
 To use Sign In with Apple in your Android app you need to do the following:
 - Configure your app for Sign In with Apple as outlined in the [Firebase documentation's "Before you begin" section](https://firebase.google.com/docs/auth/android/apple#before-you-begin)
+
+### authenticateUserWithApple
+Authenticates the user with an Microsoft account using Sign In with Oauth to obtain a credential that can be used to sign the user in/link to an existing user account/reauthenticate the user.
+- Follow [Firebase documentation's "Authenticate Using Microsoft" section](https://firebase.google.com/docs/auth/web/microsoft-oauth)
+
+**Parameters**:
+- {function} success - callback function to pass {object} credentials to as an argument. The credential object has the following properties:
+    - {string} id - the identifier of a native credential object which can be used for signing in the user.
+- {function} error - callback function which will be passed a {string} error message as an argument
+
+Example usage:
+
+```javascript
+
+FirebasePlugin.authenticateUserWithMicrosoft(function(credential) {
+    FirebasePlugin.signInWithCredential(credential, function() {
+            console.log("Successfully signed in");
+        }, function(error) {
+            console.error("Failed to sign in", error);
+        });
+}, function(error) {
+    console.error("Failed to authenticate with Apple: " + error);
+});
+```
 
 ### signInWithCredential
 Signs the user into Firebase with credentials obtained via an authentication method such as `verifyPhoneNumber()` or `authenticateUserWithGoogle()`.
