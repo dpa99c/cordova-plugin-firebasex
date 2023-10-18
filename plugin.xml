@@ -38,7 +38,7 @@
 		<config-file target="AndroidManifest.xml" parent="application">
 			<service android:enabled="true" android:exported="false" android:name="com.google.android.gms.measurement.AppMeasurementService" />
 			<service android:exported="false" android:name="org.apache.cordova.firebase.FirebasePluginMessagingService">
-				<intent-filter>
+				<intent-filter android:priority="9991">
 					<action android:name="com.google.firebase.MESSAGING_EVENT"/>
 				</intent-filter>
 			</service>
