@@ -354,7 +354,7 @@ exports.authenticateUserWithMicrosoft = function (success, error, locale) {
   exec(success, error, "FirebasePlugin", "authenticateUserWithMicrosoft", [locale]);
 };
 
-exports.authenticateUserWithFacebook = function (accessToken, success, error,) {
+exports.authenticateUserWithFacebook = function (accessToken, success, error) {
     exec(success, error, "FirebasePlugin", "authenticateUserWithFacebook", [accessToken]);
 };
 
