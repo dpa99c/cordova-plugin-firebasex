@@ -155,7 +155,7 @@
 				<pod name="Firebase/Messaging" spec="10.10.0"/>
 				<pod name="Firebase/Performance" spec="10.10.0"/>
 				<pod name="Firebase/RemoteConfig" spec="10.10.0"/>
-				<pod name="Firebase/InAppMessaging" spec="10.10.0-beta"/>
+				<pod name="Firebase/InAppMessaging" spec="10.10.0"/>
 				<pod name="Firebase/Firestore" spec="10.10.0"/>
 				<pod name="Firebase/Crashlytics" spec="10.10.0"/>
 				<pod name="Firebase/Functions" spec="10.10.0"/>
