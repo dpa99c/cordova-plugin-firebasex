@@ -524,6 +524,8 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                     [result setValue:@"true" forKey:@"instantVerification"];
                     [result setValue:key forKey:@"id"];
                     [result setValue:idToken forKey:@"idToken"];
+                    [result setValue:rawNonce forKey:@"rawNonce"];
+
                     if(appleIDCredential.fullName != nil){
                         if(appleIDCredential.fullName.givenName != nil){
                             [result setValue:appleIDCredential.fullName.givenName forKey:@"givenName"];
