@@ -83,6 +83,10 @@ module.exports = {
         // Generate a unique ID for our new build phase.
         var id = xcodeProject.generateUuid();
         // Create the build phase.
+        if (!xcodeProject.hash.project.objects.PBXShellScriptBuildPhase) {
+            xcodeProject.hash.project.objects.PBXShellScriptBuildPhase = {};
+        }
+
         xcodeProject.hash.project.objects.PBXShellScriptBuildPhase[id] = {
             isa: "PBXShellScriptBuildPhase",
             buildActionMask: 2147483647,
