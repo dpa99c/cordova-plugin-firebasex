@@ -229,7 +229,7 @@ module.exports = {
             DEBUG_INFORMATION_FORMAT = pluginVariables['IOS_STRIP_DEBUG'] && pluginVariables['IOS_STRIP_DEBUG'] === 'true' ? 'dwarf' : 'dwarf-with-dsym',
             IPHONEOS_DEPLOYMENT_TARGET = podFile.match(iosDeploymentTargetPodRegEx)[1];
 
-        if(!podFile.match('post_install')){
+        if (!podFile.match('post_install')) {
             podFile += `
 post_install do |installer|
     installer.pods_project.targets.each do |target|
@@ -238,6 +238,15 @@ post_install do |installer|
             config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '${IPHONEOS_DEPLOYMENT_TARGET}'
             if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
                 config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+            end
+        end
+        if target.name == 'BoringSSL-GRPC'
+            target.source_build_phase.files.each do |file|
+                if file.settings && file.settings['COMPILER_FLAGS']
+                    flags = file.settings['COMPILER_FLAGS'].split
+                    flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+                    file.settings['COMPILER_FLAGS'] = flags.join(' ')
+                end
             end
         end
     end
