@@ -287,6 +287,9 @@ The following plugin variables are used to specify the Firebase SDK versions as 
     -   If not specified, the default version defined in the `<pod>` element in the `plugin.xml` will be used.
 -   `IOS_GOOGLE_TAG_MANAGER_VERSION` - a specific version of the Google Tag Manager library to set in the Podfile
     -   If not specified, the default version defined in the `<pod>` element in the `plugin.xml` will be used.
+-   `IOS_FIREBASE_IN_APP_MESSAGING_VERSION` - a specific version of the Firebase In-App Messaging library to set in the Podfile
+    -   If not specified, the default version defined in `<pod>` elements in the `plugin.xml` will be used.
+    -   Note: This variable allows you to specify a particular version of FirebaseInAppMessaging, which can be helpful because this library sometimes releases beta versions (e.g., 11.2.0-beta) that are not aligned with the stable versions of other Firebase SDK components. By setting IOS_FIREBASE_IN_APP_MESSAGING_VERSION, you can ensure that your project uses the exact version of Firebase In-App Messaging that you need, independent of the version specified by IOS_FIREBASE_SDK_VERSION.
 -   `IOS_USE_PRECOMPILED_FIRESTORE_POD` - if `true`, switches Podfile to use a [pre-compiled version of the Firestore pod](https://github.com/invertase/firestore-ios-sdk-frameworks.git) to reduce build time
     -   Since some users experienced long build times due to the Firestore pod (see [#407](https://github.com/dpa99c/cordova-plugin-firebasex/issues/407))
     -   However other users have experienced build issues with the pre-compiled version (see [#735](https://github.com/dpa99c/cordova-plugin-firebasex/issues/735))
