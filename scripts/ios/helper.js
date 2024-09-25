@@ -13,6 +13,7 @@ var comment = "\"Crashlytics\"";
 var versionRegex = /\d+\.\d+\.\d+[^'"]*/,
     firebasePodRegex = /pod 'Firebase([^']+)', '(\d+\.\d+\.\d+[^'"]*)'/g,
     standardFirestorePodRegEx = /pod 'FirebaseFirestore', '(\d+\.\d+\.\d+[^'"]*)'/,
+    firebaseInAppMessagingPodRegEx = /pod 'FirebaseInAppMessaging', '(\d+\.\d+\.\d+[^'"]*)'/;
     googleSignInPodRegEx = /pod 'GoogleSignIn', '(\d+\.\d+\.\d+[^'"]*)'/,
     googleTagManagerPodRegEx = /pod 'GoogleTagManager', '(\d+\.\d+\.\d+[^'"]*)'/,
     prebuiltFirestorePodTemplate = "pod 'FirebaseFirestore', :tag => '{version}', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git'",
@@ -373,6 +374,25 @@ end
                 }
             }else{
                 throw new Error("The value \""+pluginVariables['IOS_GOOGLE_SIGIN_VERSION']+"\" for IOS_GOOGLE_SIGIN_VERSION is not a valid version in the format 'X.Y.Z'")
+            }
+        }
+
+        if(pluginVariables['IOS_FIREBASE_IN_APP_MESSAGING_VERSION']){
+            if(pluginVariables['IOS_FIREBASE_IN_APP_MESSAGING_VERSION'].match(versionRegex)){
+                var match = podFileContents.match(firebaseInAppMessagingPodRegEx);
+                if(match){
+                    var currentVersion = match[1]; // Extract the current version
+                    if(currentVersion !== pluginVariables['IOS_FIREBASE_IN_APP_MESSAGING_VERSION']){
+                        var newPodLine = match[0].replace(currentVersion, pluginVariables['IOS_FIREBASE_IN_APP_MESSAGING_VERSION']);
+                        podFileContents = podFileContents.replace(match[0], newPodLine);
+                        podFileModified = true;
+                    }
+                } else {
+                    utilities.log("Firebase In-App Messaging pod not found in Podfile.");
+                }
+                if(podFileModified) utilities.log("Firebase In-App Messaging version set to v"+pluginVariables['IOS_FIREBASE_IN_APP_MESSAGING_VERSION']+" in Podfile");
+            }else{
+                throw new Error("The value \""+pluginVariables['IOS_FIREBASE_IN_APP_MESSAGING_VERSION']+"\" for IOS_FIREBASE_IN_APP_MESSAGING_VERSION is not a valid version in the format 'X.Y.Z' or 'X.Y.Z-beta'");
             }
         }
 
