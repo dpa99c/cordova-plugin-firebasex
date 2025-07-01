@@ -399,20 +399,15 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
         // Print full message.
         [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"willPresentNotification: %@", mutableUserInfo]];
 
-        
         NSDictionary* aps = [mutableUserInfo objectForKey:@"aps"];
         bool isContentAvailable = [[aps objectForKey:@"content-available"] isEqualToNumber:[NSNumber numberWithInt:1]];
-        if(isContentAvailable){
-            [FirebasePlugin.firebasePlugin _logError:@"willPresentNotification: aborting as content-available:1 so system notification will be shown"];
-            return;
-        }
         
         bool showForegroundNotification = [mutableUserInfo objectForKey:@"notification_foreground"];
         bool hasAlert = [aps objectForKey:@"alert"] != nil;
         bool hasBadge = [aps objectForKey:@"badge"] != nil;
         bool hasSound = [aps objectForKey:@"sound"] != nil;
 
-        if(showForegroundNotification){
+        if(showForegroundNotification && isContentAvailable){
             [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"willPresentNotification: foreground notification alert=%@, badge=%@, sound=%@", hasAlert ? @"YES" : @"NO", hasBadge ? @"YES" : @"NO", hasSound ? @"YES" : @"NO"]];
             if(hasAlert && hasBadge && hasSound){
                 completionHandler(UNNotificationPresentationOptionAlert + UNNotificationPresentationOptionBadge + UNNotificationPresentationOptionSound);
