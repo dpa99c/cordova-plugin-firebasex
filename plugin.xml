@@ -180,7 +180,7 @@
 				<pod name="FirebaseAuth" spec="12.3.0"/>
 				<pod name="FirebaseAnalytics/Core" spec="12.3.0"/>
 				<pod name="FirebaseAnalytics/IdentitySupport" spec="12.3.0"/>
-				<!--<pod name="GoogleAdsOnDeviceConversion" spec="12.3.0"/>-->
+				<!--<pod name="GoogleAdsOnDeviceConversion" spec="3.1.0"/>-->
 				<pod name="FirebaseMessaging" spec="12.3.0"/>
 				<pod name="FirebasePerformance" spec="12.3.0"/>
 				<pod name="FirebaseRemoteConfig" spec="12.3.0"/>
