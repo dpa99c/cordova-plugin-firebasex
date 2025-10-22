@@ -62,15 +62,20 @@ variableApplicators.FIREBASE_ANALYTICS_WITHOUT_ADS = function(){
     }
 
     // Android
-    const googleAnalyticsAdIdEnabled = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="true" />`,
-        googleAnalyticsAdIdDisabled = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />`,
-        googleAnalyticsAdIdMatch = pluginXmlText.match(googleAnalyticsAdIdEnabled);
+    const googleAnalyticsAdIdPluginVariable = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="$GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED" />`, 
+        googleAnalyticsAdIdEnabled = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="true" />`,
+        googleAnalyticsAdIdDisabled = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />`;
 
-    if(googleAnalyticsAdIdMatch){
+    if(pluginXmlText.match(googleAnalyticsAdIdPluginVariable)){
+        pluginXmlText = pluginXmlText.replace(googleAnalyticsAdIdPluginVariable, googleAnalyticsAdIdDisabled);
+        pluginXmlModified = true;
+    }else if(pluginXmlText.match(googleAnalyticsAdIdEnabled)){
         pluginXmlText = pluginXmlText.replace(googleAnalyticsAdIdEnabled, googleAnalyticsAdIdDisabled);
         pluginXmlModified = true;
+    }else if(pluginXmlText.match(googleAnalyticsAdIdDisabled)){
+        console.log(`google_analytics_adid_collection_enabled already set to false in ${PLUGIN_ID}/plugin.xml`);
     }else{
-        console.warn(`Failed to find <meta-data android:name="google_analytics_adid_collection_enabled"> in ${PLUGIN_ID}/plugin.xml`);
+        console.warn(`Failed to find a valid <meta-data android:name="google_analytics_adid_collection_enabled"> entry in ${PLUGIN_ID}/plugin.xml`);
     }
 
     const commentedOutAdIdRemoval = `<!--<uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>-->`,
