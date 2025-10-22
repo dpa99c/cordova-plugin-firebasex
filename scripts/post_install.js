@@ -46,17 +46,19 @@ variableApplicators.IOS_USE_PRECOMPILED_FIRESTORE_POD = function(){
     const precompiledPodReplacement = precompiledPodReplacementPattern.replace("$version$", match[1]);
     pluginXmlText = pluginXmlText.replace(firestorePodsRegExp, precompiledPodReplacement);
     pluginXmlModified = true;
+    console.log(`Replaced FirebaseFirestore pod with precompiled version in ${PLUGIN_ID}/plugin.xml`);
 }
 
 variableApplicators.FIREBASE_ANALYTICS_WITHOUT_ADS = function(){
     // iOS
     // Remove IdentitySupport pod to exclude IDFA support
-    const identitySupportPodRegExp = /\s*<pod name="FirebaseAnalytics\/IdentitySupport" spec="\d+\.\d+\.\d+"\/>\n/,
+    const identitySupportPodRegExp = /\s*<pod name="FirebaseAnalytics\/IdentitySupport" spec="\d+\.\d+\.\d+"\/>/,
         identitySupportMatch = pluginXmlText.match(identitySupportPodRegExp);
 
     if(identitySupportMatch){
         pluginXmlText = pluginXmlText.replace(identitySupportPodRegExp, '');
         pluginXmlModified = true;
+        console.log(`Removed FirebaseAnalytics/IdentitySupport pod from ${PLUGIN_ID}/plugin.xml`);
     }else{
         console.warn(`Failed to find <pod name="FirebaseAnalytics/IdentitySupport"> in ${PLUGIN_ID}/plugin.xml`);
     }
@@ -66,13 +68,15 @@ variableApplicators.FIREBASE_ANALYTICS_WITHOUT_ADS = function(){
         googleAnalyticsAdIdEnabled = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="true" />`,
         googleAnalyticsAdIdDisabled = `<meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />`;
 
-    if(pluginXmlText.match(googleAnalyticsAdIdPluginVariable)){
+    if(pluginXmlText.includes(googleAnalyticsAdIdPluginVariable)){
         pluginXmlText = pluginXmlText.replace(googleAnalyticsAdIdPluginVariable, googleAnalyticsAdIdDisabled);
         pluginXmlModified = true;
-    }else if(pluginXmlText.match(googleAnalyticsAdIdEnabled)){
+        console.log(`Set google_analytics_adid_collection_enabled to false in ${PLUGIN_ID}/plugin.xml`);
+    }else if(pluginXmlText.includes(googleAnalyticsAdIdEnabled)){
         pluginXmlText = pluginXmlText.replace(googleAnalyticsAdIdEnabled, googleAnalyticsAdIdDisabled);
         pluginXmlModified = true;
-    }else if(pluginXmlText.match(googleAnalyticsAdIdDisabled)){
+        console.log(`Set google_analytics_adid_collection_enabled to false in ${PLUGIN_ID}/plugin.xml`);
+    }else if(pluginXmlText.includes(googleAnalyticsAdIdDisabled)){
         console.log(`google_analytics_adid_collection_enabled already set to false in ${PLUGIN_ID}/plugin.xml`);
     }else{
         console.warn(`Failed to find a valid <meta-data android:name="google_analytics_adid_collection_enabled"> entry in ${PLUGIN_ID}/plugin.xml`);
@@ -85,6 +89,7 @@ variableApplicators.FIREBASE_ANALYTICS_WITHOUT_ADS = function(){
     if(commentedOutAdIdRemovalMatch){
         pluginXmlText = pluginXmlText.replace(commentedOutAdIdRemoval, commentedInAdIdRemoval);
         pluginXmlModified = true;
+        console.log(`Enabled removal of AD_ID permission in ${PLUGIN_ID}/plugin.xml`);
     }else{
         console.warn(`Failed to find commented-out <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/> in ${PLUGIN_ID}/plugin.xml`);
     }
@@ -107,6 +112,7 @@ variableApplicators.IOS_ON_DEVICE_CONVERSION_ANALYTICS = function(){
         const replacement = commentedInPattern.replace("$version$", match[1]);
         pluginXmlText = pluginXmlText.replace(commentedOutPodRegExp, replacement);
         pluginXmlModified = true;
+        console.log(`Enabled GoogleAdsOnDeviceConversion pod in ${PLUGIN_ID}/plugin.xml`);
     }else{
         // Analytics with IDFA + On-Device Conversion = Just FirebaseAnalytics (includes everything)
         // Replace Core and IdentitySupport pods with single FirebaseAnalytics pod
@@ -120,6 +126,7 @@ variableApplicators.IOS_ON_DEVICE_CONVERSION_ANALYTICS = function(){
         const replacement = `<pod name="FirebaseAnalytics" spec="${match[1]}"/>`;
         pluginXmlText = pluginXmlText.replace(coreAndIdentitySupportRegExp, replacement);
         pluginXmlModified = true;
+        console.log(`Replaced FirebaseAnalytics/Core and FirebaseAnalytics/IdentitySupport pods with FirebaseAnalytics pod in ${PLUGIN_ID}/plugin.xml`);
     }
 }
 
