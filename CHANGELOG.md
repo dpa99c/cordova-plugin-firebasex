@@ -1,3 +1,8 @@
+# Version 19.0.1
+* (ios) fix: Migrate to new Firebase Analytics module structure for SDK >= 11.14.0
+    * Merged from PR [#960](https://github.com/dpa99c/cordova-plugin-firebasex/pull/960)
+    * Resolves [#959](https://github.com/dpa99c/cordova-plugin-firebasex/issues/959)
+
 # Version 19.0.0
 * (ios) BREAKING: Update pinned default Firebase iOS SDK version from v11.8.0 to v12.3.0 - September 15, 2025
     * https://firebase.google.com/support/release-notes/ios#version_1230_-_september_15_2025
