@@ -50,15 +50,15 @@ variableApplicators.IOS_USE_PRECOMPILED_FIRESTORE_POD = function(){
 
 variableApplicators.FIREBASE_ANALYTICS_WITHOUT_ADS = function(){
     // iOS
-    const firebaseAnalyticsWithAdsPodFragment = `<pod name="FirebaseAnalytics"`,
-        firebaseAnalyticsWithoutAdsPodFragment = `<pod name="FirebaseAnalytics/WithoutAdIdSupport"`,
-        podMatch = pluginXmlText.match(firebaseAnalyticsWithAdsPodFragment);
+    // Remove IdentitySupport pod to exclude IDFA support
+    const identitySupportPodRegExp = /\s*<pod name="FirebaseAnalytics\/IdentitySupport" spec="\d+\.\d+\.\d+"\/>\n/,
+        identitySupportMatch = pluginXmlText.match(identitySupportPodRegExp);
 
-    if(podMatch){
-        pluginXmlText = pluginXmlText.replace(firebaseAnalyticsWithAdsPodFragment, firebaseAnalyticsWithoutAdsPodFragment);
+    if(identitySupportMatch){
+        pluginXmlText = pluginXmlText.replace(identitySupportPodRegExp, '');
         pluginXmlModified = true;
     }else{
-        console.warn(`Failed to find <pod name="FirebaseAnalytics"> in ${PLUGIN_ID}/plugin.xml`);
+        console.warn(`Failed to find <pod name="FirebaseAnalytics/IdentitySupport"> in ${PLUGIN_ID}/plugin.xml`);
     }
 
     // Android
@@ -91,17 +91,36 @@ variableApplicators.FIREBASE_ANALYTICS_WITHOUT_ADS = function(){
 }
 
 variableApplicators.IOS_ON_DEVICE_CONVERSION_ANALYTICS = function(){
-    const commentedOutPodRegExp = /<!--<pod name="FirebaseAnalyticsOnDeviceConversion" spec="(\d+\.\d+\.\d+)"\/>-->/,
-        commentedInPattern = `<pod name="FirebaseAnalyticsOnDeviceConversion" spec="$version$"/>`,
-        match = pluginXmlText.match(commentedOutPodRegExp);
+    // Check if FIREBASE_ANALYTICS_WITHOUT_ADS is also enabled
+    const withoutAds = resolveBoolean(pluginVariables['FIREBASE_ANALYTICS_WITHOUT_ADS']);
 
-    if(!match){
-        console.warn(`Failed to find commented-out <pod name="FirebaseAnalyticsOnDeviceConversion"> in ${PLUGIN_ID}/plugin.xml`);
-        return;
+    if(withoutAds){
+        // Analytics without IDFA + On-Device Conversion = Core + GoogleAdsOnDeviceConversion
+        const commentedOutPodRegExp = /<!--<pod name="GoogleAdsOnDeviceConversion" spec="(\d+\.\d+\.\d+)"\/>-->/,
+            commentedInPattern = `<pod name="GoogleAdsOnDeviceConversion" spec="$version$"/>`,
+            match = pluginXmlText.match(commentedOutPodRegExp);
+
+        if(!match){
+            console.warn(`Failed to find commented-out <pod name="GoogleAdsOnDeviceConversion"> in ${PLUGIN_ID}/plugin.xml`);
+            return;
+        }
+        const replacement = commentedInPattern.replace("$version$", match[1]);
+        pluginXmlText = pluginXmlText.replace(commentedOutPodRegExp, replacement);
+        pluginXmlModified = true;
+    }else{
+        // Analytics with IDFA + On-Device Conversion = Just FirebaseAnalytics (includes everything)
+        // Replace Core and IdentitySupport pods with single FirebaseAnalytics pod
+        const coreAndIdentitySupportRegExp = /<pod name="FirebaseAnalytics\/Core" spec="(\d+\.\d+\.\d+)"\/>\n\s*<pod name="FirebaseAnalytics\/IdentitySupport" spec="\d+\.\d+\.\d+"\/>/,
+            match = pluginXmlText.match(coreAndIdentitySupportRegExp);
+
+        if(!match){
+            console.warn(`Failed to find <pod name="FirebaseAnalytics/Core"> and <pod name="FirebaseAnalytics/IdentitySupport"> in ${PLUGIN_ID}/plugin.xml`);
+            return;
+        }
+        const replacement = `<pod name="FirebaseAnalytics" spec="${match[1]}"/>`;
+        pluginXmlText = pluginXmlText.replace(coreAndIdentitySupportRegExp, replacement);
+        pluginXmlModified = true;
     }
-    const replacement = commentedInPattern.replace("$version$", match[1]);
-    pluginXmlText = pluginXmlText.replace(commentedOutPodRegExp, replacement);
-    pluginXmlModified = true;
 }
 
 const run = function (){
