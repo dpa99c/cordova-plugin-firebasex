@@ -69,7 +69,10 @@ export interface FirebasePlugin {
         success: (value: boolean) => void,
         error: (err: string) => void
     ): void
-    unregister(): void
+    unregister(
+        success?: () => void,
+        error?: (err: string) => void
+    ): void
     setBadgeNumber(
         badgeNumber: number
     ): void
