@@ -242,12 +242,12 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
     if(!showForegroundNotification){
         return;
     }
-    
+
     NSString* title = nil;
     NSString* body = nil;
     NSString* sound = nil;
     NSNumber* badge = nil;
-    
+
     // Extract APNS notification keys
     NSDictionary* aps = [messageData objectForKey:@"aps"];
     if([aps objectForKey:@"alert"] != nil){
@@ -265,7 +265,7 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
             badge = [aps objectForKey:@"badge"];
         }
     }
-    
+
     // Extract data notification keys
     if([messageData objectForKey:@"notification_title"] != nil){
         title = [messageData objectForKey:@"notification_title"];
@@ -279,9 +279,15 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
     if([messageData objectForKey:@"notification_ios_badge"] != nil){
         badge = [messageData objectForKey:@"notification_ios_badge"];
     }
-   
+
     if(title == nil || body == nil){
         return;
+    }
+
+    // Check for emergency notification and setup actions
+    NSString* notiType = [messageData objectForKey:@"notiType"];
+    if(notiType != nil && [notiType isEqualToString:@"emergency"]){
+        [self setupEmergencyNotificationCategory];
     }
     
     [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
@@ -315,13 +321,27 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                 if([mutableUserInfo objectForKey:@"messageType"] != nil){
                     messageType = [mutableUserInfo objectForKey:@"messageType"];
                 }
-                
-                NSDictionary* userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
+
+                NSMutableDictionary* userInfo = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
                                           @"true", @"notification_foreground",
                                           messageType, @"messageType",
                                           aps, @"aps"
                                           , nil];
-                
+
+                // Add emergency notification data
+                if(notiType != nil && [notiType isEqualToString:@"emergency"]){
+                    [userInfo setValue:notiType forKey:@"notiType"];
+                    objNotificationContent.categoryIdentifier = @"EMERGENCY_CATEGORY";
+
+                    // Include URLs in userInfo
+                    if([messageData objectForKey:@"confirmUrl"] != nil){
+                        [userInfo setValue:[messageData objectForKey:@"confirmUrl"] forKey:@"confirmUrl"];
+                    }
+                    if([messageData objectForKey:@"cancelUrl"] != nil){
+                        [userInfo setValue:[messageData objectForKey:@"cancelUrl"] forKey:@"cancelUrl"];
+                    }
+                }
+
                 objNotificationContent.userInfo = userInfo;
                 
                 UNTimeIntervalNotificationTrigger *trigger =  [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:0.1f repeats:NO];
@@ -475,8 +495,29 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
         // Dynamic Actions
         if (response.actionIdentifier && ![response.actionIdentifier isEqual:UNNotificationDefaultActionIdentifier]) {
             [mutableUserInfo setValue:response.actionIdentifier forKey:@"action"];
+
+            // Handle emergency notification actions
+            if ([response.actionIdentifier isEqualToString:@"EMERGENCY_CONFIRM"]) {
+                NSString* confirmUrl = [mutableUserInfo objectForKey:@"confirmUrl"];
+                if (confirmUrl != nil && ![confirmUrl isEqualToString:@""]) {
+                    NSURL* url = [NSURL URLWithString:confirmUrl];
+                    if (url != nil) {
+                        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+                        [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Opening confirm URL: %@", confirmUrl]];
+                    }
+                }
+            } else if ([response.actionIdentifier isEqualToString:@"EMERGENCY_CANCEL"]) {
+                NSString* cancelUrl = [mutableUserInfo objectForKey:@"cancelUrl"];
+                if (cancelUrl != nil && ![cancelUrl isEqualToString:@""]) {
+                    NSURL* url = [NSURL URLWithString:cancelUrl];
+                    if (url != nil) {
+                        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+                        [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Opening cancel URL: %@", cancelUrl]];
+                    }
+                }
+            }
         }
-        
+
         // Print full message.
         [FirebasePlugin.firebasePlugin _logInfo:[NSString stringWithFormat:@"didReceiveNotificationResponse: %@", mutableUserInfo]];
 
@@ -570,8 +611,42 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
     if(aps == nil){
         return false;
     }
-    
+
     return ([aps objectForKey:@"'content-available'"] != nil && [[aps objectForKey:@"'content-available'"] isEqualToNumber:[NSNumber numberWithInt:1]])
         || ([aps objectForKey:@"content-available"] != nil && [[aps objectForKey:@"content-available"] isEqualToNumber:[NSNumber numberWithInt:1]]);
 }
+
+- (void) setupEmergencyNotificationCategory {
+    @try {
+        UNNotificationAction *confirmAction = [UNNotificationAction
+            actionWithIdentifier:@"EMERGENCY_CONFIRM"
+            title:@"Confirm"
+            options:UNNotificationActionOptionForeground];
+
+        UNNotificationAction *cancelAction = [UNNotificationAction
+            actionWithIdentifier:@"EMERGENCY_CANCEL"
+            title:@"Cancel"
+            options:UNNotificationActionOptionForeground];
+
+        UNNotificationCategory *emergencyCategory = [UNNotificationCategory
+            categoryWithIdentifier:@"EMERGENCY_CATEGORY"
+            actions:@[confirmAction, cancelAction]
+            intentIdentifiers:@[]
+            options:UNNotificationCategoryOptionNone];
+
+        NSSet *categories = [NSSet setWithObject:emergencyCategory];
+
+        // Get existing categories and merge with emergency category
+        [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull existingCategories) {
+            NSMutableSet *allCategories = [existingCategories mutableCopy];
+            [allCategories addObject:emergencyCategory];
+            [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:allCategories];
+        }];
+
+        [FirebasePlugin.firebasePlugin _logMessage:@"Emergency notification category setup complete"];
+    }@catch (NSException *exception) {
+        [FirebasePlugin.firebasePlugin handlePluginExceptionWithoutContext:exception];
+    }
+}
+
 @end

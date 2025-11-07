@@ -424,6 +424,48 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             Log.d(TAG, "Priority: " + iPriority);
             notificationBuilder.setPriority(iPriority);
 
+            // Emergency notification actions (Confirm/Cancel buttons)
+            if (data != null && "emergency".equals(data.get("notiType"))) {
+                String confirmUrl = data.get("confirmUrl");
+                String cancelUrl = data.get("cancelUrl");
+
+                Log.d(TAG, "Emergency notification detected with confirmUrl=" + confirmUrl + ", cancelUrl=" + cancelUrl);
+
+                // Create Confirm action
+                Intent confirmIntent = new Intent(this, OnNotificationActionReceiver.class);
+                confirmIntent.setAction("EMERGENCY_CONFIRM");
+                confirmIntent.putExtras(bundle);
+                PendingIntent confirmPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    (id + "_confirm").hashCode(),
+                    confirmIntent,
+                    flag
+                );
+                NotificationCompat.Action confirmAction = new NotificationCompat.Action.Builder(
+                    0,
+                    "Confirm",
+                    confirmPendingIntent
+                ).build();
+                notificationBuilder.addAction(confirmAction);
+
+                // Create Cancel action
+                Intent cancelIntent = new Intent(this, OnNotificationActionReceiver.class);
+                cancelIntent.setAction("EMERGENCY_CANCEL");
+                cancelIntent.putExtras(bundle);
+                PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    (id + "_cancel").hashCode(),
+                    cancelIntent,
+                    flag
+                );
+                NotificationCompat.Action cancelAction = new NotificationCompat.Action.Builder(
+                    0,
+                    "Cancel",
+                    cancelPendingIntent
+                ).build();
+                notificationBuilder.addAction(cancelAction);
+            }
+
             // Build notification
             Notification notification = notificationBuilder.build();
 

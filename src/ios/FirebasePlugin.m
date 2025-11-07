@@ -202,6 +202,25 @@ static NSMutableArray* pendingGlobalJS = nil;
                         actions:buttons intentIdentifiers:@[] options:UNNotificationCategoryOptionNone]];
         }
 
+        // Add emergency notification category
+        UNNotificationAction *confirmAction = [UNNotificationAction
+            actionWithIdentifier:@"EMERGENCY_CONFIRM"
+            title:@"Confirm"
+            options:UNNotificationActionOptionForeground];
+
+        UNNotificationAction *cancelAction = [UNNotificationAction
+            actionWithIdentifier:@"EMERGENCY_CANCEL"
+            title:@"Cancel"
+            options:UNNotificationActionOptionForeground];
+
+        UNNotificationCategory *emergencyCategory = [UNNotificationCategory
+            categoryWithIdentifier:@"EMERGENCY_CATEGORY"
+            actions:@[confirmAction, cancelAction]
+            intentIdentifiers:@[]
+            options:UNNotificationCategoryOptionNone];
+
+        [categories addObject:emergencyCategory];
+
         // Initialize categories
         [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:categories];
 
