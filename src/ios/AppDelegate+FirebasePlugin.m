@@ -332,6 +332,7 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                 if(notiType != nil && [notiType isEqualToString:@"emergency"]){
                     [userInfo setValue:notiType forKey:@"notiType"];
                     objNotificationContent.categoryIdentifier = @"EMERGENCY_CATEGORY";
+                    [FirebasePlugin.firebasePlugin _logMessage:@"Emergency notification: categoryIdentifier set to EMERGENCY_CATEGORY"];
 
                     // Include URLs in userInfo
                     if([messageData objectForKey:@"confirmUrl"] != nil){
@@ -340,6 +341,8 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                     if([messageData objectForKey:@"cancelUrl"] != nil){
                         [userInfo setValue:[messageData objectForKey:@"cancelUrl"] forKey:@"cancelUrl"];
                     }
+                } else {
+                    [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Not emergency notification. notiType: %@", notiType]];
                 }
 
                 objNotificationContent.userInfo = userInfo;

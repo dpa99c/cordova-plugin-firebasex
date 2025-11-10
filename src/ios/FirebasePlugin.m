@@ -227,6 +227,21 @@ static NSMutableArray* pendingGlobalJS = nil;
         [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:categories];
         [self _logInfo:[NSString stringWithFormat:@"Registered %lu notification categories including EMERGENCY_CATEGORY", (unsigned long)categories.count]];
 
+        // Verify the category was registered (debug)
+        [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull registeredCategories) {
+            BOOL found = NO;
+            for (UNNotificationCategory *cat in registeredCategories) {
+                if ([cat.identifier isEqualToString:@"EMERGENCY_CATEGORY"]) {
+                    found = YES;
+                    [self _logInfo:[NSString stringWithFormat:@"✓ EMERGENCY_CATEGORY verified in registered categories with %lu actions", (unsigned long)cat.actions.count]];
+                    break;
+                }
+            }
+            if (!found) {
+                [self _logError:@"✗ EMERGENCY_CATEGORY NOT found in registered categories!"];
+            }
+        }];
+
     }@catch (NSException *exception) {
         [self handlePluginExceptionWithoutContext:exception];
     }
