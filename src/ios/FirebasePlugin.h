@@ -157,4 +157,6 @@
 @property (nonatomic, retain) NSMutableArray *notificationStack;
 @property(nonatomic, nullable) id<NSObject> installationIDObserver;
 
+- (void)registerEmergencyNotificationCategory;
+
 @end
