@@ -1769,152 +1769,48 @@ static NSMutableArray* pendingGlobalJS = nil;
     }];
 }
 
-/*
- * Crashlytics
- */
+#pragma mark - Crashlytics (disabled in this fork)
 
-- (void)setCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand *)command {
-     [self.commandDelegate runInBackground:^{
-         @try {
-             BOOL enabled = [[command argumentAtIndex:0] boolValue];
-             CDVPluginResult* pluginResult;
-             [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:enabled];
-             [self setPreferenceFlag:FIREBASE_CRASHLYTICS_COLLECTION_ENABLED flag:enabled];
-             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
-             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-         }@catch (NSException *exception) {
-             [self handlePluginExceptionWithContext:exception :command];
-         }
-     }];
+- (void)setCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command {
+    // Crashlytics disabled: no-op
+    [self sendPluginSuccess:command];
 }
 
-- (void)isCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command{
-    [self.commandDelegate runInBackground:^{
-        @try {
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[self isCrashlyticsEnabled]];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)isCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command {
+    // Crashlytics always disabled on iOS
+    [self sendPluginBoolResult:NO command:command callbackId:command.callbackId];
 }
 
--(BOOL)isCrashlyticsEnabled{
-    return [self getPreferenceFlag:FIREBASE_CRASHLYTICS_COLLECTION_ENABLED];
+- (void)didCrashOnPreviousExecution:(CDVInvokedUrlCommand*)command {
+    // Crashlytics disabled: always report no previous crash
+    [self sendPluginBoolResult:NO command:command callbackId:command.callbackId];
 }
 
--(void)didCrashOnPreviousExecution:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        @try {
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot query didCrashOnPreviousExecution - Crashlytics collection is disabled"];
-            } else {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[[FIRCrashlytics crashlytics] didCrashDuringPreviousExecution]];
-            }
-
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)logError:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)logError:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        @try {
-            NSString* errorMessage = [command.arguments objectAtIndex:0];
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot log error - Crashlytics collection is disabled"];
-            }else if([command.arguments objectAtIndex:0] == [NSNull null]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot log error - error message is empty"];
-            }
-            // We can optionally be passed a stack trace from stackTrace.js which we'll put in userInfo.
-            else if ([command.arguments count] > 1) {
-                NSArray* stackFrames = [command.arguments objectAtIndex:1];
-
-                NSString* message = errorMessage;
-                NSString* name = @"Uncaught Javascript exception";
-                NSMutableArray *customFrames = [[NSMutableArray alloc] init];
-                FIRExceptionModel *exceptionModel = [FIRExceptionModel exceptionModelWithName:name reason:message];
-
-                for (NSDictionary* stackFrame in stackFrames) {
-                    FIRStackFrame *customFrame = [FIRStackFrame stackFrameWithSymbol:stackFrame[@"functionName"] file:stackFrame[@"fileName"] line:(uint32_t) [stackFrame[@"lineNumber"] intValue]];
-                    [customFrames addObject:customFrame];
-                }
-                exceptionModel.stackTrace = customFrames;
-                [[FIRCrashlytics crashlytics] recordExceptionModel:exceptionModel];
-            }else{
-                //TODO detect and handle non-stack userInfo and pass to recordError
-                NSMutableDictionary* userInfo = [[NSMutableDictionary alloc] init];
-                NSError *error = [NSError errorWithDomain:errorMessage code:0 userInfo:userInfo];
-                [[FIRCrashlytics crashlytics] recordError:error];
-            }
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        } @catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-
-    }];
+- (void)logMessage:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)logMessage:(CDVInvokedUrlCommand*)command{
-    [self.commandDelegate runInBackground:^{
-        @try {
-            NSString* message = [command argumentAtIndex:0 withDefault:@""];
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot log message - Crashlytics collection is disabled"];
-            }else if(message){
-                [[FIRCrashlytics crashlytics] logWithFormat:@"%@", message];
-            }
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)setCrashlyticsCustomKey:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)setCrashlyticsCustomKey:(CDVInvokedUrlCommand*)command{
-    [self.commandDelegate runInBackground:^{
-        @try {
-            NSString* key = [command argumentAtIndex:0 withDefault:@""];
-            NSString* value = [command argumentAtIndex:1 withDefault:@""];
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot set custom key/valuee - Crashlytics collection is disabled"];
-            }else {
-                [[FIRCrashlytics crashlytics] setCustomValue: value forKey: key];
-            }
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)setCrashlyticsUserId:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)sendCrash:(CDVInvokedUrlCommand*)command{
-    assert(NO);
+- (void)sendCrash:(CDVInvokedUrlCommand*)command {
+    // Feature disabled: return an error so callers know the crash was not sent
+    [self sendPluginErrorWithMessage:@"Crashlytics is disabled in this build" :command];
 }
 
-- (void)setCrashlyticsUserId:(CDVInvokedUrlCommand *)command {
-    @try {
-        NSString* userId = [command.arguments objectAtIndex:0];
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        if(![self isCrashlyticsEnabled]){
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot set user ID - Crashlytics collection is disabled"];
-        }else{
-            [[FIRCrashlytics crashlytics] setUserID:userId];
-        }
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }@catch (NSException *exception) {
-        [self handlePluginExceptionWithContext:exception :command];
-    }
-}
 
 /*
  * Remote config
