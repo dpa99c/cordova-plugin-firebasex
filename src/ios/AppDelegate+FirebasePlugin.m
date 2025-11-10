@@ -618,6 +618,12 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
 
 - (void) setupEmergencyNotificationCategory {
     @try {
+        FirebasePlugin *plugin = [FirebasePlugin firebasePlugin];
+        if (plugin != nil) {
+            [plugin registerEmergencyNotificationCategory];
+            return;
+        }
+
         UNNotificationAction *confirmAction = [UNNotificationAction
             actionWithIdentifier:@"EMERGENCY_CONFIRM"
             title:@"Confirm"
@@ -634,16 +640,19 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
             intentIdentifiers:@[]
             options:UNNotificationCategoryOptionNone];
 
-        NSSet *categories = [NSSet setWithObject:emergencyCategory];
-
-        // Get existing categories and merge with emergency category
         [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull existingCategories) {
-            NSMutableSet *allCategories = [existingCategories mutableCopy];
+            NSMutableSet<UNNotificationCategory *> *allCategories = existingCategories != nil ? [existingCategories mutableCopy] : [NSMutableSet set];
+            for (UNNotificationCategory *existingCategory in [allCategories copy]) {
+                if ([existingCategory.identifier isEqualToString:emergencyCategory.identifier]) {
+                    [allCategories removeObject:existingCategory];
+                    break;
+                }
+            }
             [allCategories addObject:emergencyCategory];
-            [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:allCategories];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:allCategories];
+            });
         }];
-
-        [FirebasePlugin.firebasePlugin _logMessage:@"Emergency notification category setup complete"];
     }@catch (NSException *exception) {
         [FirebasePlugin.firebasePlugin handlePluginExceptionWithoutContext:exception];
     }
