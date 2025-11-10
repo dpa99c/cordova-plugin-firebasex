@@ -56,6 +56,56 @@ static FIRMultiFactorResolver* multiFactorResolver;
 static FIROAuthProvider* oauthProvider;
 static NSMutableArray* pendingGlobalJS = nil;
 
++ (UNNotificationCategory *)emergencyNotificationCategory {
+    UNNotificationAction *confirmAction = [UNNotificationAction
+        actionWithIdentifier:@"EMERGENCY_CONFIRM"
+        title:@"Confirm"
+        options:UNNotificationActionOptionForeground];
+
+    UNNotificationAction *cancelAction = [UNNotificationAction
+        actionWithIdentifier:@"EMERGENCY_CANCEL"
+        title:@"Cancel"
+        options:UNNotificationActionOptionForeground];
+
+    return [UNNotificationCategory
+        categoryWithIdentifier:@"EMERGENCY_CATEGORY"
+        actions:@[confirmAction, cancelAction]
+        intentIdentifiers:@[]
+        options:UNNotificationCategoryOptionNone];
+}
+
+- (void)registerNotificationCategories:(NSSet<UNNotificationCategory *> *)categories context:(NSString *)context {
+    if (categories == nil || categories.count == 0) {
+        return;
+    }
+
+    [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull existingCategories) {
+        NSMutableSet<UNNotificationCategory *> *allCategories = existingCategories != nil ? [existingCategories mutableCopy] : [NSMutableSet set];
+
+        for (UNNotificationCategory *category in categories) {
+            for (UNNotificationCategory *existingCategory in [allCategories copy]) {
+                if ([existingCategory.identifier isEqualToString:category.identifier]) {
+                    [allCategories removeObject:existingCategory];
+                    break;
+                }
+            }
+            [allCategories addObject:category];
+        }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:allCategories];
+            if (context != nil) {
+                [self _logInfo:[NSString stringWithFormat:@"%@: registered %lu notification categories", context, (unsigned long)allCategories.count]];
+            }
+        });
+    }];
+}
+
+- (void)registerEmergencyNotificationCategory {
+    NSSet<UNNotificationCategory *> *categories = [NSSet setWithObject:[FirebasePlugin emergencyNotificationCategory]];
+    [self registerNotificationCategories:categories context:@"Emergency notification category setup"];
+}
+
 
 + (FirebasePlugin*) firebasePlugin {
     return firebasePlugin;
@@ -161,71 +211,48 @@ static NSMutableArray* pendingGlobalJS = nil;
             }
         ];
 
-        // The part related to installation ID is not specific to FCM, that's why it was moved above.
-        if (!self.isFCMEnabled) {
-            return;
-        }
+        NSMutableSet<UNNotificationCategory *> *categories = [[NSMutableSet alloc] init];
+        [categories addObject:[FirebasePlugin emergencyNotificationCategory]];
 
-        // Initialize categories set
-        NSMutableSet *categories = [[NSMutableSet alloc] init];
+        if (self.isFCMEnabled) {
+            NSString *path = [[NSBundle mainBundle] pathForResource:@"pn-actions" ofType:@"json"];
+            NSData *data = [NSData dataWithContentsOfFile:path];
+            if (data != nil) {
+                NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+                NSArray *actionsArray = [dict objectForKey:@"PushNotificationActions"];
+                for (NSDictionary *item in actionsArray) {
+                    NSMutableArray *buttons = [NSMutableArray new];
+                    NSString *category = [item objectForKey:@"category"];
 
-        // Add emergency notification category FIRST (before pn-actions.json check)
-        // This ensures emergency buttons work even without pn-actions.json
-        UNNotificationAction *confirmAction = [UNNotificationAction
-            actionWithIdentifier:@"EMERGENCY_CONFIRM"
-            title:@"Confirm"
-            options:UNNotificationActionOptionForeground];
+                    NSArray *actions = [item objectForKey:@"actions"];
+                    for (NSDictionary *action in actions) {
+                        NSString *actionId = [action objectForKey:@"id"];
+                        NSString *actionTitle = [action objectForKey:@"title"];
+                        UNNotificationActionOptions options = UNNotificationActionOptionNone;
 
-        UNNotificationAction *cancelAction = [UNNotificationAction
-            actionWithIdentifier:@"EMERGENCY_CANCEL"
-            title:@"Cancel"
-            options:UNNotificationActionOptionForeground];
+                        id mode = [action objectForKey:@"foreground"];
+                        if (mode != nil && (([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"true"]) || [mode boolValue])) {
+                            options |= UNNotificationActionOptionForeground;
+                        }
+                        id destructive = [action objectForKey:@"destructive"];
+                        if (destructive != nil && (([destructive isKindOfClass:[NSString class]] && [destructive isEqualToString:@"true"]) || [destructive boolValue])) {
+                            options |= UNNotificationActionOptionDestructive;
+                        }
 
-        UNNotificationCategory *emergencyCategory = [UNNotificationCategory
-            categoryWithIdentifier:@"EMERGENCY_CATEGORY"
-            actions:@[confirmAction, cancelAction]
-            intentIdentifiers:@[]
-            options:UNNotificationCategoryOptionNone];
-
-        [categories addObject:emergencyCategory];
-
-        // Parse JSON for additional custom categories (optional)
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"pn-actions" ofType:@"json"];
-        NSData *data = [NSData dataWithContentsOfFile:path];
-        if(data != nil) {
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
-            NSArray *actionsArray = [dict objectForKey:@"PushNotificationActions"];
-            for (NSDictionary *item in actionsArray) {
-                NSMutableArray *buttons = [NSMutableArray new];
-                NSString *category = [item objectForKey:@"category"];
-
-                NSArray *actions = [item objectForKey:@"actions"];
-                for (NSDictionary *action in actions) {
-                    NSString *actionId = [action objectForKey:@"id"];
-                    NSString *actionTitle = [action objectForKey:@"title"];
-                    UNNotificationActionOptions options = UNNotificationActionOptionNone;
-
-                    id mode = [action objectForKey:@"foreground"];
-                    if (mode != nil && (([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"true"]) || [mode boolValue])) {
-                        options |= UNNotificationActionOptionForeground;
-                    }
-                    id destructive = [action objectForKey:@"destructive"];
-                    if (destructive != nil && (([destructive isKindOfClass:[NSString class]] && [destructive isEqualToString:@"true"]) || [destructive boolValue])) {
-                        options |= UNNotificationActionOptionDestructive;
+                        [buttons addObject:[UNNotificationAction actionWithIdentifier:actionId
+                            title:NSLocalizedString(actionTitle, nil) options:options]];
                     }
 
-                    [buttons addObject:[UNNotificationAction actionWithIdentifier:actionId
-                        title:NSLocalizedString(actionTitle, nil) options:options]];
+                    [categories addObject:[UNNotificationCategory categoryWithIdentifier:category
+                                actions:buttons intentIdentifiers:@[] options:UNNotificationCategoryOptionNone]];
                 }
-
-                [categories addObject:[UNNotificationCategory categoryWithIdentifier:category
-                            actions:buttons intentIdentifiers:@[] options:UNNotificationCategoryOptionNone]];
             }
         }
 
-        // Register all notification categories (emergency + any from pn-actions.json)
-        [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:categories];
-        [self _logInfo:[NSString stringWithFormat:@"Registered %lu notification categories including EMERGENCY_CATEGORY", (unsigned long)categories.count]];
+        NSString *context = self.isFCMEnabled
+            ? @"Registered notification categories including EMERGENCY_CATEGORY"
+            : @"Registered emergency notification category";
+        [self registerNotificationCategories:categories context:context];
 
         // Verify the category was registered (debug)
         [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull registeredCategories) {
