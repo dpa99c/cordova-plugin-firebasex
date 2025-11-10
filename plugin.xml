@@ -190,7 +190,6 @@
 				<pod name="FirebaseRemoteConfig" spec="12.3.0"/>
 				<pod name="FirebaseInAppMessaging" spec="12.3.0-beta"/>
 				<pod name="FirebaseFirestore" spec="12.3.0"/>
-				<!-- <pod name="FirebaseCrashlytics" spec="12.3.0"/> -->
 				<pod name="FirebaseFunctions" spec="12.3.0"/>
 				<pod name="FirebaseInstallations" spec="12.3.0"/>
 				<pod name="GoogleSignIn" spec="9.0.0"/>

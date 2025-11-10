@@ -78,7 +78,7 @@
 - (void)setUserProperty:(CDVInvokedUrlCommand*)command;
 - (void)initiateOnDeviceConversionMeasurement:(CDVInvokedUrlCommand*)command;
 
-// Crashlytics
+// Crashlytics (disabled on iOS; methods are no-ops)
 - (void)setCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command;
 - (void)isCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command;
 - (void)didCrashOnPreviousExecution:(CDVInvokedUrlCommand *)command;
@@ -138,7 +138,6 @@
 - (void) _logError: (NSString*)msg;
 - (void) _logInfo: (NSString*)msg;
 - (void) _logMessage: (NSString*)msg;
-- (BOOL) _shouldEnableCrashlytics;
 - (NSNumber*) saveAuthCredential: (FIRAuthCredential *) authCredential;
 - (void)executeGlobalJavascript: (NSString*)jsString;
 
