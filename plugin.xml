@@ -9,9 +9,9 @@
 	<license>MIT</license>
 
 	<engines>
-		<engine name="cordova" version=">=12" />
-		<engine name="cordova-android" version=">=14" />
-		<engine name="cordova-ios" version=">=7 || 8.0.0-beta.1" />
+		<engine name="cordova" version=">=11" />
+		<engine name="cordova-android" version=">=12" />
+		<engine name="cordova-ios" version=">=6 || 7 || 8.0.0-beta.1" />
 	</engines>
 
 	<preference name="FIREBASE_ANALYTICS_COLLECTION_ENABLED" default="true" />
