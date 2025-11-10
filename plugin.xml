@@ -97,8 +97,9 @@
 		<preference name="ANDROID_FIREBASE_FUNCTIONS_VERSION" default="22.0.1" />
 		<preference name="ANDROID_FIREBASE_IID_VERSION" default="21.1.0" /> <!-- deprecated but required by firebase-messaging -->
 		<preference name="ANDROID_FIREBASE_INSTALLATIONS_VERSION" default="19.0.1" />
-		<preference name="ANDROID_FIREBASE_CRASHLYTICS_VERSION" default="20.0.2" />
-		<preference name="ANDROID_FIREBASE_CRASHLYTICS_NDK_VERSION" default="20.0.2" />
+		<!-- Crashlytics version preferences commented out (Crashlytics disabled) -->
+		<!-- <preference name="ANDROID_FIREBASE_CRASHLYTICS_VERSION" default="20.0.2" /> -->
+		<!-- <preference name="ANDROID_FIREBASE_CRASHLYTICS_NDK_VERSION" default="20.0.2" /> -->
 		<preference name="ANDROID_GSON_VERSION" default="2.13.2" />
 		<preference name="ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION" default="2.0.1" />
 		<preference name="ANDROID_GRPC_OKHTTP" default="1.75.0" />
@@ -116,8 +117,9 @@
 		<framework src="com.google.firebase:firebase-functions:$ANDROID_FIREBASE_FUNCTIONS_VERSION" />
 		<framework src="com.google.firebase:firebase-iid:$ANDROID_FIREBASE_IID_VERSION" />
 		<framework src="com.google.firebase:firebase-installations:$ANDROID_FIREBASE_INSTALLATIONS_VERSION" />
-		<framework src="com.google.firebase:firebase-crashlytics:$ANDROID_FIREBASE_CRASHLYTICS_VERSION" />
-		<framework src="com.google.firebase:firebase-crashlytics-ndk:$ANDROID_FIREBASE_CRASHLYTICS_NDK_VERSION" />
+		<!-- Crashlytics dependencies commented out to prevent initialization issues -->
+		<!-- <framework src="com.google.firebase:firebase-crashlytics:$ANDROID_FIREBASE_CRASHLYTICS_VERSION" /> -->
+		<!-- <framework src="com.google.firebase:firebase-crashlytics-ndk:$ANDROID_FIREBASE_CRASHLYTICS_NDK_VERSION" /> -->
 		<framework src="com.google.code.gson:gson:$ANDROID_GSON_VERSION" />
 		<framework src="io.grpc:grpc-okhttp:$ANDROID_GRPC_OKHTTP" />
 	</platform>
@@ -188,7 +190,7 @@
 				<pod name="FirebaseRemoteConfig" spec="12.3.0"/>
 				<pod name="FirebaseInAppMessaging" spec="12.3.0-beta"/>
 				<pod name="FirebaseFirestore" spec="12.3.0"/>
-				<pod name="FirebaseCrashlytics" spec="12.3.0"/>
+				<!-- <pod name="FirebaseCrashlytics" spec="12.3.0"/> -->
 				<pod name="FirebaseFunctions" spec="12.3.0"/>
 				<pod name="FirebaseInstallations" spec="12.3.0"/>
 				<pod name="GoogleSignIn" spec="9.0.0"/>
