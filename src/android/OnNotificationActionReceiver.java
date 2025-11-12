@@ -7,6 +7,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class OnNotificationActionReceiver extends BroadcastReceiver {
 
     private static final String TAG = "FirebasePlugin";
@@ -29,19 +33,15 @@ public class OnNotificationActionReceiver extends BroadcastReceiver {
                 data.putString("action", "confirm");
                 String confirmUrl = data.getString("confirmUrl");
                 if (confirmUrl != null && !confirmUrl.isEmpty()) {
-                    // Open the confirm URL
-                    Intent urlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(confirmUrl));
-                    urlIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(urlIntent);
+                    // Make HTTP GET request to track the confirm action
+                    makeHttpGetRequest(confirmUrl, "Confirm");
                 }
             } else if ("EMERGENCY_CANCEL".equals(action)) {
                 data.putString("action", "cancel");
                 String cancelUrl = data.getString("cancelUrl");
                 if (cancelUrl != null && !cancelUrl.isEmpty()) {
-                    // Open the cancel URL
-                    Intent urlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cancelUrl));
-                    urlIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(urlIntent);
+                    // Make HTTP GET request to track the cancel action
+                    makeHttpGetRequest(cancelUrl, "Cancel");
                 }
             }
 
@@ -54,5 +54,31 @@ public class OnNotificationActionReceiver extends BroadcastReceiver {
         } catch (Exception e) {
             FirebasePlugin.handleExceptionWithoutContext(e);
         }
+    }
+
+    private void makeHttpGetRequest(final String urlString, final String actionName) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection connection = null;
+                try {
+                    URL url = new URL(urlString);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(10000); // 10 seconds
+                    connection.setReadTimeout(10000);
+
+                    int responseCode = connection.getResponseCode();
+                    Log.d(TAG, actionName + " URL requested successfully: " + urlString + " (Status: " + responseCode + ")");
+
+                } catch (IOException e) {
+                    Log.e(TAG, actionName + " URL request failed: " + e.getMessage());
+                } finally {
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                }
+            }
+        }).start();
     }
 }

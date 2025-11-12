@@ -505,8 +505,17 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                 if (confirmUrl != nil && ![confirmUrl isEqualToString:@""]) {
                     NSURL* url = [NSURL URLWithString:confirmUrl];
                     if (url != nil) {
-                        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-                        [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Opening confirm URL: %@", confirmUrl]];
+                        // Make HTTP GET request to track the confirm action
+                        NSURLSession* session = [NSURLSession sharedSession];
+                        NSURLSessionDataTask* task = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                            if (error) {
+                                [FirebasePlugin.firebasePlugin _logError:[NSString stringWithFormat:@"Confirm URL request failed: %@", error.localizedDescription]];
+                            } else {
+                                NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+                                [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Confirm URL requested successfully: %@ (Status: %ld)", confirmUrl, (long)httpResponse.statusCode]];
+                            }
+                        }];
+                        [task resume];
                     }
                 }
             } else if ([response.actionIdentifier isEqualToString:@"EMERGENCY_CANCEL"]) {
@@ -514,8 +523,17 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                 if (cancelUrl != nil && ![cancelUrl isEqualToString:@""]) {
                     NSURL* url = [NSURL URLWithString:cancelUrl];
                     if (url != nil) {
-                        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-                        [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Opening cancel URL: %@", cancelUrl]];
+                        // Make HTTP GET request to track the cancel action
+                        NSURLSession* session = [NSURLSession sharedSession];
+                        NSURLSessionDataTask* task = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                            if (error) {
+                                [FirebasePlugin.firebasePlugin _logError:[NSString stringWithFormat:@"Cancel URL request failed: %@", error.localizedDescription]];
+                            } else {
+                                NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+                                [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Cancel URL requested successfully: %@ (Status: %ld)", cancelUrl, (long)httpResponse.statusCode]];
+                            }
+                        }];
+                        [task resume];
                     }
                 }
             }
