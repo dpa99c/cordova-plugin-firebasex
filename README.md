@@ -2583,12 +2583,12 @@ FirebasePlugin.setUserProperty("name", "value");
 
 ### getAppInstanceId
 
-Get the app instance ID for use with the [Google Analytics Measurement Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4). The app instance ID is used to join Measurement Protocol events with online interactions using the `app_instance_id` parameter.
+Get the app instance ID for use with the [Google Analytics Measurement Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4). The app instance ID is used to join Measurement Protocol events with online interactions using the `app_instance_id` parameter, but Measurement Protocol events will only attribute if the `app_instance_id` has already been observed by the Firebase SDK in that app session.
 
 **Parameters**:
 
 -   {function} success - callback function which will be invoked on success.
-    Will be passed a {string} containing the app instance ID.
+    Will be passed a {string} containing the app instance ID (or `null` if Analytics storage consent is denied or Analytics collection is disabled, per [Firebase Analytics consent behavior](https://firebase.google.com/docs/analytics/consent)).
 -   {function} error - (optional) callback function which will be passed a {string} error message as an argument
 
 ```javascript

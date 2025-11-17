@@ -1171,28 +1171,7 @@ public class FirebasePlugin extends CordovaPlugin {
             @Override
             public void run() {
                 try {
-                    mFirebaseAnalytics.getAppInstanceId().addOnCompleteListener(new OnCompleteListener<String>() {
-                        @Override
-                        public void onComplete(@NonNull Task<String> task) {
-                            try {
-                                if (task.isSuccessful() && task.getResult() != null) {
-                                    String appInstanceId = task.getResult();
-                                    if (appInstanceId != null && appInstanceId.length() > 0) {
-                                        callbackContext.success(appInstanceId);
-                                    } else {
-                                        callbackContext.error("Failed to get app instance ID: value is null or empty");
-                                    }
-                                } else {
-                                    String errorMessage = task.getException() != null
-                                        ? task.getException().getMessage()
-                                        : "Failed to get app instance ID: task failed";
-                                    callbackContext.error(errorMessage);
-                                }
-                            } catch (Exception e) {
-                                handleExceptionWithContext(e, callbackContext);
-                            }
-                        }
-                    });
+                    handleTaskOutcomeWithStringResult(mFirebaseAnalytics.getAppInstanceId(), callbackContext);
                 } catch (Exception e) {
                     handleExceptionWithContext(e, callbackContext);
                 }

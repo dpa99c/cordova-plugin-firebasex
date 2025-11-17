@@ -149,7 +149,7 @@ export interface FirebasePlugin {
         userValue: string
     ): void
     getAppInstanceId(
-        success?: (appInstanceId: string) => void,
+        success?: (appInstanceId: string | null) => void,
         error?: (err: string) => void
     ): void
     initiateOnDeviceConversionMeasurement(

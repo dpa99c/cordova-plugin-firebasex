@@ -1762,7 +1762,7 @@ static NSMutableArray* pendingGlobalJS = nil;
                                 resultWithStatus:CDVCommandStatus_OK
                                 messageAsString:appInstanceID];
             } else {
-                NSString *errorMessage = @"Failed to get app instance ID: value is nil or empty";
+                NSString *errorMessage = @"Failed to get app instance ID: value is nil or empty. Ensure Firebase Analytics is initialized and collection is enabled.";
                 pluginResult = [CDVPluginResult
                                 resultWithStatus:CDVCommandStatus_ERROR
                                 messageAsString:errorMessage];
