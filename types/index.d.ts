@@ -148,6 +148,10 @@ export interface FirebasePlugin {
         userName: string,
         userValue: string
     ): void
+    getAppInstanceId(
+        success?: (appInstanceId: string) => void,
+        error?: (err: string) => void
+    ): void
     initiateOnDeviceConversionMeasurement(
         userIdentifier: { emailAddress?:string, phoneNumber?: string },
         success?: () => void,
