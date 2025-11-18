@@ -59,12 +59,12 @@ static NSMutableArray* pendingGlobalJS = nil;
 + (UNNotificationCategory *)emergencyNotificationCategory {
     UNNotificationAction *confirmAction = [UNNotificationAction
         actionWithIdentifier:@"EMERGENCY_CONFIRM"
-        title:@"Confirm"
+        title:@"Safe"
         options:UNNotificationActionOptionNone];
 
     UNNotificationAction *cancelAction = [UNNotificationAction
         actionWithIdentifier:@"EMERGENCY_CANCEL"
-        title:@"Cancel"
+        title:@"Unsafe"
         options:UNNotificationActionOptionNone];
 
     return [UNNotificationCategory

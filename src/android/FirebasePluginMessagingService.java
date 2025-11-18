@@ -443,7 +443,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 );
                 NotificationCompat.Action confirmAction = new NotificationCompat.Action.Builder(
                     0,
-                    "Confirm",
+                    "Safe",
                     confirmPendingIntent
                 ).build();
                 notificationBuilder.addAction(confirmAction);
@@ -460,7 +460,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 );
                 NotificationCompat.Action cancelAction = new NotificationCompat.Action.Builder(
                     0,
-                    "Cancel",
+                    "Unsafe",
                     cancelPendingIntent
                 ).build();
                 notificationBuilder.addAction(cancelAction);
