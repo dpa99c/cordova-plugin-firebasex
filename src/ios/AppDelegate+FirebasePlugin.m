@@ -285,7 +285,7 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
     }
 
     // Check for emergency notification and setup actions
-    NSString* notiType = [messageData objectForKey:@"notiType"];
+    NSString* notiType = [messageData objectForKey:@"type"];
     if(notiType != nil && [notiType isEqualToString:@"emergency"]){
         [self setupEmergencyNotificationCategory];
     }
@@ -330,7 +330,7 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
 
                 // Add emergency notification data
                 if(notiType != nil && [notiType isEqualToString:@"emergency"]){
-                    [userInfo setValue:notiType forKey:@"notiType"];
+                    [userInfo setValue:notiType forKey:@"type"];
                     objNotificationContent.categoryIdentifier = @"EMERGENCY_CATEGORY";
                     [FirebasePlugin.firebasePlugin _logMessage:@"Emergency notification: categoryIdentifier set to EMERGENCY_CATEGORY"];
 
@@ -342,7 +342,7 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
                         [userInfo setValue:[messageData objectForKey:@"cancelUrl"] forKey:@"cancelUrl"];
                     }
                 } else {
-                    [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Not emergency notification. notiType: %@", notiType]];
+                    [FirebasePlugin.firebasePlugin _logMessage:[NSString stringWithFormat:@"Not emergency notification. type: %@", notiType]];
                 }
 
                 objNotificationContent.userInfo = userInfo;

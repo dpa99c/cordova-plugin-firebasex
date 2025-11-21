@@ -425,7 +425,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             notificationBuilder.setPriority(iPriority);
 
             // Emergency notification actions (Confirm/Cancel buttons)
-            if (data != null && "emergency".equals(data.get("notiType"))) {
+            if (data != null && "emergency".equals(data.get("type"))) {
                 String confirmUrl = data.get("confirmUrl");
                 String cancelUrl = data.get("cancelUrl");
 
