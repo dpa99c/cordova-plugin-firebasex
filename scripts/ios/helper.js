@@ -68,7 +68,7 @@ module.exports = {
         // path used by cordova-ios 8.x and later
         var newPath = path.join("platforms", "ios", "App.xcodeproj", "project.pbxproj");
 
-        if fs.existsSync(newPath) {
+        if (fs.existsSync(newPath)) {
             return newPath;
         }
         return oldPath;
