@@ -124,6 +124,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             String bodyLocKey = null;
             String[] bodyLocArgs = null;
             String bodyHtml = null;
+            String link = null;
             String id = null;
             String sound = null;
             String vibrate = null;
@@ -192,6 +193,19 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 if(data.containsKey("notification_android_priority")) priority = data.get("notification_android_priority");
                 if(data.containsKey("notification_android_image")) image = data.get("notification_android_image");
                 if(data.containsKey("notification_android_image_type")) imageType = data.get("notification_android_image_type");
+                if(data.containsKey("link")) link = data.get("link");
+            }
+
+            if (!TextUtils.isEmpty(link)) {
+                if (!TextUtils.isEmpty(body)) {
+                    body = body + "\n" + link;
+                } else {
+                    body = link;
+                }
+
+                if (!TextUtils.isEmpty(bodyHtml)) {
+                    bodyHtml = bodyHtml + "<br />" + link;
+                }
             }
 
             if (TextUtils.isEmpty(id)) {
@@ -423,6 +437,48 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             }
             Log.d(TAG, "Priority: " + iPriority);
             notificationBuilder.setPriority(iPriority);
+
+            // Emergency notification actions (Confirm/Cancel buttons)
+            if (data != null && "emergency".equals(data.get("type"))) {
+                String confirmUrl = data.get("confirmUrl");
+                String cancelUrl = data.get("cancelUrl");
+
+                Log.d(TAG, "Emergency notification detected with confirmUrl=" + confirmUrl + ", cancelUrl=" + cancelUrl);
+
+                // Create Confirm action
+                Intent confirmIntent = new Intent(this, OnNotificationActionReceiver.class);
+                confirmIntent.setAction("EMERGENCY_CONFIRM");
+                confirmIntent.putExtras(bundle);
+                PendingIntent confirmPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    (id + "_confirm").hashCode(),
+                    confirmIntent,
+                    flag
+                );
+                NotificationCompat.Action confirmAction = new NotificationCompat.Action.Builder(
+                    0,
+                    "Safe",
+                    confirmPendingIntent
+                ).build();
+                notificationBuilder.addAction(confirmAction);
+
+                // Create Cancel action
+                Intent cancelIntent = new Intent(this, OnNotificationActionReceiver.class);
+                cancelIntent.setAction("EMERGENCY_CANCEL");
+                cancelIntent.putExtras(bundle);
+                PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    (id + "_cancel").hashCode(),
+                    cancelIntent,
+                    flag
+                );
+                NotificationCompat.Action cancelAction = new NotificationCompat.Action.Builder(
+                    0,
+                    "Unsafe",
+                    cancelPendingIntent
+                ).build();
+                notificationBuilder.addAction(cancelAction);
+            }
 
             // Build notification
             Notification notification = notificationBuilder.build();

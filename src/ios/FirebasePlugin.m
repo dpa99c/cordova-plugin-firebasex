@@ -56,6 +56,56 @@ static FIRMultiFactorResolver* multiFactorResolver;
 static FIROAuthProvider* oauthProvider;
 static NSMutableArray* pendingGlobalJS = nil;
 
++ (UNNotificationCategory *)emergencyNotificationCategory {
+    UNNotificationAction *confirmAction = [UNNotificationAction
+        actionWithIdentifier:@"EMERGENCY_CONFIRM"
+        title:@"Safe"
+        options:UNNotificationActionOptionNone];
+
+    UNNotificationAction *cancelAction = [UNNotificationAction
+        actionWithIdentifier:@"EMERGENCY_CANCEL"
+        title:@"Unsafe"
+        options:UNNotificationActionOptionNone];
+
+    return [UNNotificationCategory
+        categoryWithIdentifier:@"EMERGENCY_CATEGORY"
+        actions:@[confirmAction, cancelAction]
+        intentIdentifiers:@[]
+        options:UNNotificationCategoryOptionNone];
+}
+
+- (void)registerNotificationCategories:(NSSet<UNNotificationCategory *> *)categories context:(NSString *)context {
+    if (categories == nil || categories.count == 0) {
+        return;
+    }
+
+    [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull existingCategories) {
+        NSMutableSet<UNNotificationCategory *> *allCategories = existingCategories != nil ? [existingCategories mutableCopy] : [NSMutableSet set];
+
+        for (UNNotificationCategory *category in categories) {
+            for (UNNotificationCategory *existingCategory in [allCategories copy]) {
+                if ([existingCategory.identifier isEqualToString:category.identifier]) {
+                    [allCategories removeObject:existingCategory];
+                    break;
+                }
+            }
+            [allCategories addObject:category];
+        }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:allCategories];
+            if (context != nil) {
+                [self _logInfo:[NSString stringWithFormat:@"%@: registered %lu notification categories", context, (unsigned long)allCategories.count]];
+            }
+        });
+    }];
+}
+
+- (void)registerEmergencyNotificationCategory {
+    NSSet<UNNotificationCategory *> *categories = [NSSet setWithObject:[FirebasePlugin emergencyNotificationCategory]];
+    [self registerNotificationCategories:categories context:@"Emergency notification category setup"];
+}
+
 
 + (FirebasePlugin*) firebasePlugin {
     return firebasePlugin;
@@ -161,49 +211,63 @@ static NSMutableArray* pendingGlobalJS = nil;
             }
         ];
 
-        // The part related to installation ID is not specific to FCM, that's why it was moved above.
-        if (!self.isFCMEnabled) {
-            return;
-        }
+        NSMutableSet<UNNotificationCategory *> *categories = [[NSMutableSet alloc] init];
+        [categories addObject:[FirebasePlugin emergencyNotificationCategory]];
 
-        // Parse JSON
-        NSString *path = [[NSBundle mainBundle] pathForResource:@"pn-actions" ofType:@"json"];
-        NSData *data = [NSData dataWithContentsOfFile:path];
-        if(data == nil) return;
-        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+        if (self.isFCMEnabled) {
+            NSString *path = [[NSBundle mainBundle] pathForResource:@"pn-actions" ofType:@"json"];
+            NSData *data = [NSData dataWithContentsOfFile:path];
+            if (data != nil) {
+                NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+                NSArray *actionsArray = [dict objectForKey:@"PushNotificationActions"];
+                for (NSDictionary *item in actionsArray) {
+                    NSMutableArray *buttons = [NSMutableArray new];
+                    NSString *category = [item objectForKey:@"category"];
 
-        // Assign actions for categories
-        NSMutableSet *categories = [[NSMutableSet alloc] init];
-        NSArray *actionsArray = [dict objectForKey:@"PushNotificationActions"];
-        for (NSDictionary *item in actionsArray) {
-            NSMutableArray *buttons = [NSMutableArray new];
-            NSString *category = [item objectForKey:@"category"];
+                    NSArray *actions = [item objectForKey:@"actions"];
+                    for (NSDictionary *action in actions) {
+                        NSString *actionId = [action objectForKey:@"id"];
+                        NSString *actionTitle = [action objectForKey:@"title"];
+                        UNNotificationActionOptions options = UNNotificationActionOptionNone;
 
-            NSArray *actions = [item objectForKey:@"actions"];
-            for (NSDictionary *action in actions) {
-                NSString *actionId = [action objectForKey:@"id"];
-                NSString *actionTitle = [action objectForKey:@"title"];
-                UNNotificationActionOptions options = UNNotificationActionOptionNone;
+                        id mode = [action objectForKey:@"foreground"];
+                        if (mode != nil && (([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"true"]) || [mode boolValue])) {
+                            options |= UNNotificationActionOptionForeground;
+                        }
+                        id destructive = [action objectForKey:@"destructive"];
+                        if (destructive != nil && (([destructive isKindOfClass:[NSString class]] && [destructive isEqualToString:@"true"]) || [destructive boolValue])) {
+                            options |= UNNotificationActionOptionDestructive;
+                        }
 
-                id mode = [action objectForKey:@"foreground"];
-                if (mode != nil && (([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"true"]) || [mode boolValue])) {
-                    options |= UNNotificationActionOptionForeground;
+                        [buttons addObject:[UNNotificationAction actionWithIdentifier:actionId
+                            title:NSLocalizedString(actionTitle, nil) options:options]];
+                    }
+
+                    [categories addObject:[UNNotificationCategory categoryWithIdentifier:category
+                                actions:buttons intentIdentifiers:@[] options:UNNotificationCategoryOptionNone]];
                 }
-                id destructive = [action objectForKey:@"destructive"];
-                if (destructive != nil && (([destructive isKindOfClass:[NSString class]] && [destructive isEqualToString:@"true"]) || [destructive boolValue])) {
-                    options |= UNNotificationActionOptionDestructive;
-                }
-
-                [buttons addObject:[UNNotificationAction actionWithIdentifier:actionId
-                    title:NSLocalizedString(actionTitle, nil) options:options]];
             }
-
-            [categories addObject:[UNNotificationCategory categoryWithIdentifier:category
-                        actions:buttons intentIdentifiers:@[] options:UNNotificationCategoryOptionNone]];
         }
 
-        // Initialize categories
-        [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:categories];
+        NSString *context = self.isFCMEnabled
+            ? @"Registered notification categories including EMERGENCY_CATEGORY"
+            : @"Registered emergency notification category";
+        [self registerNotificationCategories:categories context:context];
+
+        // Verify the category was registered (debug)
+        [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull registeredCategories) {
+            BOOL found = NO;
+            for (UNNotificationCategory *cat in registeredCategories) {
+                if ([cat.identifier isEqualToString:@"EMERGENCY_CATEGORY"]) {
+                    found = YES;
+                    [self _logInfo:[NSString stringWithFormat:@"✓ EMERGENCY_CATEGORY verified in registered categories with %lu actions", (unsigned long)cat.actions.count]];
+                    break;
+                }
+            }
+            if (!found) {
+                [self _logError:@"✗ EMERGENCY_CATEGORY NOT found in registered categories!"];
+            }
+        }];
 
     }@catch (NSException *exception) {
         [self handlePluginExceptionWithoutContext:exception];
@@ -1750,152 +1814,48 @@ static NSMutableArray* pendingGlobalJS = nil;
     }];
 }
 
-/*
- * Crashlytics
- */
+#pragma mark - Crashlytics (disabled in this fork)
 
-- (void)setCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand *)command {
-     [self.commandDelegate runInBackground:^{
-         @try {
-             BOOL enabled = [[command argumentAtIndex:0] boolValue];
-             CDVPluginResult* pluginResult;
-             [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:enabled];
-             [self setPreferenceFlag:FIREBASE_CRASHLYTICS_COLLECTION_ENABLED flag:enabled];
-             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
-             [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-         }@catch (NSException *exception) {
-             [self handlePluginExceptionWithContext:exception :command];
-         }
-     }];
+- (void)setCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command {
+    // Crashlytics disabled: no-op
+    [self sendPluginSuccess:command];
 }
 
-- (void)isCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command{
-    [self.commandDelegate runInBackground:^{
-        @try {
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[self isCrashlyticsEnabled]];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)isCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command {
+    // Crashlytics always disabled on iOS
+    [self sendPluginBoolResult:NO command:command callbackId:command.callbackId];
 }
 
--(BOOL)isCrashlyticsEnabled{
-    return [self getPreferenceFlag:FIREBASE_CRASHLYTICS_COLLECTION_ENABLED];
+- (void)didCrashOnPreviousExecution:(CDVInvokedUrlCommand*)command {
+    // Crashlytics disabled: always report no previous crash
+    [self sendPluginBoolResult:NO command:command callbackId:command.callbackId];
 }
 
--(void)didCrashOnPreviousExecution:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        @try {
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot query didCrashOnPreviousExecution - Crashlytics collection is disabled"];
-            } else {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[[FIRCrashlytics crashlytics] didCrashDuringPreviousExecution]];
-            }
-
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)logError:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)logError:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        @try {
-            NSString* errorMessage = [command.arguments objectAtIndex:0];
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot log error - Crashlytics collection is disabled"];
-            }else if([command.arguments objectAtIndex:0] == [NSNull null]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot log error - error message is empty"];
-            }
-            // We can optionally be passed a stack trace from stackTrace.js which we'll put in userInfo.
-            else if ([command.arguments count] > 1) {
-                NSArray* stackFrames = [command.arguments objectAtIndex:1];
-
-                NSString* message = errorMessage;
-                NSString* name = @"Uncaught Javascript exception";
-                NSMutableArray *customFrames = [[NSMutableArray alloc] init];
-                FIRExceptionModel *exceptionModel = [FIRExceptionModel exceptionModelWithName:name reason:message];
-
-                for (NSDictionary* stackFrame in stackFrames) {
-                    FIRStackFrame *customFrame = [FIRStackFrame stackFrameWithSymbol:stackFrame[@"functionName"] file:stackFrame[@"fileName"] line:(uint32_t) [stackFrame[@"lineNumber"] intValue]];
-                    [customFrames addObject:customFrame];
-                }
-                exceptionModel.stackTrace = customFrames;
-                [[FIRCrashlytics crashlytics] recordExceptionModel:exceptionModel];
-            }else{
-                //TODO detect and handle non-stack userInfo and pass to recordError
-                NSMutableDictionary* userInfo = [[NSMutableDictionary alloc] init];
-                NSError *error = [NSError errorWithDomain:errorMessage code:0 userInfo:userInfo];
-                [[FIRCrashlytics crashlytics] recordError:error];
-            }
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        } @catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-
-    }];
+- (void)logMessage:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)logMessage:(CDVInvokedUrlCommand*)command{
-    [self.commandDelegate runInBackground:^{
-        @try {
-            NSString* message = [command argumentAtIndex:0 withDefault:@""];
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot log message - Crashlytics collection is disabled"];
-            }else if(message){
-                [[FIRCrashlytics crashlytics] logWithFormat:@"%@", message];
-            }
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)setCrashlyticsCustomKey:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)setCrashlyticsCustomKey:(CDVInvokedUrlCommand*)command{
-    [self.commandDelegate runInBackground:^{
-        @try {
-            NSString* key = [command argumentAtIndex:0 withDefault:@""];
-            NSString* value = [command argumentAtIndex:1 withDefault:@""];
-            CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
-            if(![self isCrashlyticsEnabled]){
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot set custom key/valuee - Crashlytics collection is disabled"];
-            }else {
-                [[FIRCrashlytics crashlytics] setCustomValue: value forKey: key];
-            }
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }@catch (NSException *exception) {
-            [self handlePluginExceptionWithContext:exception :command];
-        }
-    }];
+- (void)setCrashlyticsUserId:(CDVInvokedUrlCommand*)command {
+    // No-op when Crashlytics is disabled
+    [self sendPluginSuccess:command];
 }
 
-- (void)sendCrash:(CDVInvokedUrlCommand*)command{
-    assert(NO);
+- (void)sendCrash:(CDVInvokedUrlCommand*)command {
+    // Feature disabled: return an error so callers know the crash was not sent
+    [self sendPluginErrorWithMessage:@"Crashlytics is disabled in this build" :command];
 }
 
-- (void)setCrashlyticsUserId:(CDVInvokedUrlCommand *)command {
-    @try {
-        NSString* userId = [command.arguments objectAtIndex:0];
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        if(![self isCrashlyticsEnabled]){
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot set user ID - Crashlytics collection is disabled"];
-        }else{
-            [[FIRCrashlytics crashlytics] setUserID:userId];
-        }
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }@catch (NSException *exception) {
-        [self handlePluginExceptionWithContext:exception :command];
-    }
-}
 
 /*
  * Remote config
