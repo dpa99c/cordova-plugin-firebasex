@@ -273,6 +273,13 @@ static __weak id <UNUserNotificationCenterDelegate> _prevUserNotificationCenterD
     if([messageData objectForKey:@"notification_body"] != nil){
         body = [messageData objectForKey:@"notification_body"];
     }
+    if([messageData objectForKey:@"link"] != nil && [[messageData objectForKey:@"link"] length] > 0){
+        if(body != nil && [body length] > 0){
+            body = [NSString stringWithFormat:@"%@\n%@", body, [messageData objectForKey:@"link"]];
+        }else{
+            body = [messageData objectForKey:@"link"];
+        }
+    }
     if([messageData objectForKey:@"notification_ios_sound"] != nil){
         sound = [messageData objectForKey:@"notification_ios_sound"];
     }
