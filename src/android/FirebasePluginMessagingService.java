@@ -124,6 +124,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             String bodyLocKey = null;
             String[] bodyLocArgs = null;
             String bodyHtml = null;
+            String link = null;
             String id = null;
             String sound = null;
             String vibrate = null;
@@ -192,6 +193,19 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 if(data.containsKey("notification_android_priority")) priority = data.get("notification_android_priority");
                 if(data.containsKey("notification_android_image")) image = data.get("notification_android_image");
                 if(data.containsKey("notification_android_image_type")) imageType = data.get("notification_android_image_type");
+                if(data.containsKey("link")) link = data.get("link");
+            }
+
+            if (!TextUtils.isEmpty(link)) {
+                if (!TextUtils.isEmpty(body)) {
+                    body = body + "\n" + link;
+                } else {
+                    body = link;
+                }
+
+                if (!TextUtils.isEmpty(bodyHtml)) {
+                    bodyHtml = bodyHtml + "<br />" + link;
+                }
             }
 
             if (TextUtils.isEmpty(id)) {
