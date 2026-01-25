@@ -38,6 +38,10 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ * Service that handles Firebase Cloud Messaging events.
+ * Responsible for token refresh notifications and processing incoming messages.
+ */
 public class FirebasePluginMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FirebasePlugin";
@@ -49,9 +53,9 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
     static final String imageTypeBigPicture = "big_picture";
 
     /**
-     * Called if InstanceID token is updated. This may occur if the security of
-     * the previous token had been compromised. Note that this is called when the InstanceID token
-     * is initially generated so this is where you would retrieve the token.
+     * Called when a new FCM registration token is generated.
+     *
+     * @param refreshedToken The new registration token.
      */
     @Override
     public void onNewToken(String refreshedToken) {
@@ -66,6 +70,12 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
 
     private static final int NETWORK_TIMEOUT_MS = 15000; // 15 seconds timeout for network requests
 
+    /**
+     * Downloads a bitmap from a URL.
+     *
+     * @param strURL The image URL.
+     * @return The downloaded Bitmap, or null if download fails.
+     */
     public Bitmap getBitmapFromURL(String strURL) {
         try {
             URL url = new URL(strURL);
@@ -83,11 +93,9 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
     }
 
     /**
-     * Called when message is received.
-     * Called IF message is a data message (i.e. NOT sent from Firebase console)
-     * OR if message is a notification message (e.g. sent from Firebase console) AND app is in foreground.
-     * Notification messages received while app is in background will not be processed by this method;
-     * they are handled internally by the OS.
+     * Called when a message is received from FCM.
+     * Parses the message payload and decides whether to show a notification or 
+     * pass the data directly to the webview.
      *
      * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
      */
@@ -228,6 +236,29 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Processes the message data, optionally shows a notification, 
+     * and sends the data to the FirebasePlugin for delivery to the webview.
+     *
+     * @param remoteMessage The raw RemoteMessage.
+     * @param data The extracted data map.
+     * @param messageType Type of message ("notification" or "data").
+     * @param id Notification ID.
+     * @param title Notification title.
+     * @param body Notification body.
+     * @param bodyHtml Notification body as HTML.
+     * @param showNotification Whether to display a status bar notification.
+     * @param sound Sound to play.
+     * @param vibrate Vibration pattern.
+     * @param light LED light settings.
+     * @param color ARGB color for the notification.
+     * @param icon Icon name.
+     * @param channelId Notification channel ID.
+     * @param priority Notification priority.
+     * @param visibility Notification visibility.
+     * @param image Image URL for big picture style or large icon.
+     * @param imageType Type of image ("circle" or "big_picture").
+     */
     private void sendMessage(RemoteMessage remoteMessage, Map<String, String> data, String messageType, String id, String title, String body, String bodyHtml, boolean showNotification, String sound, String vibrate, String light, String color, String icon, String channelId, String priority, String visibility, String image, String imageType) {
         Log.d(TAG, "sendMessage(): messageType="+messageType+"; showNotification="+showNotification+"; id="+id+"; title="+title+"; body="+body+"; sound="+sound+"; vibrate="+vibrate+"; light="+light+"; color="+color+"; icon="+icon+"; channel="+channelId+"; data="+data.toString());
         Bundle bundle = new Bundle();
@@ -439,6 +470,12 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
         FirebasePlugin.sendMessage(bundle, this.getApplicationContext());
     }
 
+    /**
+     * Masks a rectangular bitmap into a circular one.
+     *
+     * @param bitmap The source bitmap.
+     * @return The circular bitmap.
+     */
     private Bitmap getCircleBitmap(Bitmap bitmap) {
 
         if (bitmap == null) {
@@ -468,6 +505,12 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
         return output;
     }
 
+    /**
+     * Converts an HTML string into a Spanned object for display in notifications.
+     *
+     * @param source HTML source string.
+     * @return Spanned text.
+     */
     private Spanned fromHtml(String source) {
         if (source != null)
             return Html.fromHtml(source);
@@ -475,6 +518,14 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             return null;
     }
 
+    /**
+     * Utility helper to put a key/value pair into a Bundle if the value is not null 
+     * and the key doesn't already exist.
+     *
+     * @param k Key.
+     * @param v Value.
+     * @param b Bundle.
+     */
     private void putKVInBundle(String k, String v, Bundle b){
         if(v != null && !b.containsKey(k)){
             b.putString(k, v);

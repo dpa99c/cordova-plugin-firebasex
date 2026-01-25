@@ -7,7 +7,18 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
+/**
+ * Intermediate Activity used to handle notification taps on Android 12+ (API 31+).
+ * Android 12 restricts starting activities from BroadcastReceivers, so this 
+ * Activity serves as a trampoline to launch the main application.
+ */
 public class OnNotificationReceiverActivity extends Activity {
+
+    /**
+     * Called when the activity is created.
+     *
+     * @param savedInstanceState Bundle containing the activity's previously saved state.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -16,6 +27,11 @@ public class OnNotificationReceiverActivity extends Activity {
         finish();
     }
 
+    /**
+     * Called when a new intent is received for this activity.
+     *
+     * @param intent The new intent.
+     */
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -24,6 +40,12 @@ public class OnNotificationReceiverActivity extends Activity {
         finish();
     }
 
+    /**
+     * Internal helper to process the notification data and launch the main activity.
+     *
+     * @param context The application context.
+     * @param intent The intent containing notification data.
+     */
     private static void handleNotification(Context context, Intent intent) {
         try{
             PackageManager pm = context.getPackageManager();

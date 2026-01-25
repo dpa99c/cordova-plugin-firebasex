@@ -5,23 +5,40 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Exception class to log Javascript based exceptions with stacktrace.
+ * Exception class to wrap and log Javascript-based exceptions with a native stack trace.
+ * This allows Javascript errors to be reported to Crashlytics with structured trace data.
  *
- * Picked from https://github.com/wizpanda/cordova-plugin-firebase-lib/pull/8/files
- *
- * @author https://github.com/sagrawal31/
+ * @author sagrawal31
  */
 public class JavaScriptException extends Exception {
 
+    /**
+     * Constructor for a simple message-based exception.
+     *
+     * @param message The error message.
+     */
     public JavaScriptException(String message) {
         super(message);
     }
 
+    /**
+     * Constructor that parses a Javascript stack trace into native elements.
+     *
+     * @param message The error message.
+     * @param stackTrace JSONArray of stack trace elements from stacktrace.js.
+     * @throws JSONException if parsing the stack trace fails.
+     */
     public JavaScriptException(String message, JSONArray stackTrace) throws JSONException {
         super(message);
         this.handleStacktrace(stackTrace);
     }
 
+    /**
+     * Internal helper to convert a JSONArray of stack elements into native StackTraceElements.
+     *
+     * @param stackTrace The source stack trace.
+     * @throws JSONException if parsing fails.
+     */
     private void handleStacktrace(JSONArray stackTrace) throws JSONException {
         if (stackTrace == null) {
             return;

@@ -8,9 +8,19 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
+/**
+ * BroadcastReceiver that handles the "open" action of a notification.
+ * Triggered when a user taps a notification in the system tray.
+ */
 public class OnNotificationOpenReceiver extends BroadcastReceiver {
 
-    // Called on tapping foreground notification
+    /**
+     * Called when the notification is tapped.
+     * Launches the main activity and passes the notification data.
+     *
+     * @param context The application context.
+     * @param intent The intent containing notification data.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         try{

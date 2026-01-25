@@ -138,6 +138,14 @@ import com.google.gson.reflect.TypeToken;
 
 import static android.content.Context.MODE_PRIVATE;
 
+/**
+ * FirebasePlugin
+ *
+ * Main plugin class for Firebase implementation in Cordova for Android.
+ * Handles communication between Cordova webview and Firebase SDK features.
+ *
+ * @author Dave Alden
+ */
 public class FirebasePlugin extends CordovaPlugin {
 
     protected static FirebasePlugin instance = null;
@@ -196,6 +204,11 @@ public class FirebasePlugin extends CordovaPlugin {
 
     private MultiFactorResolver multiFactorResolver = null;
 
+    /**
+     * Initializes the plugin.
+     * Starts the Firebase SDK and sets up listeners for auth state changes, 
+     * token refreshes, and remote notifications.
+     */
     @Override
     protected void pluginInitialize() {
         instance = this;
@@ -292,6 +305,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Handles lifecycle messages from Cordova.
+     * Specifically listens for page finished event to flush pending Javascript.
+     *
+     * @param id The message ID.
+     * @param data The message data.
+     * @return null or super result.
+     */
     @Override
     public Object onMessage(String id, Object data){
         if (id == null) {
@@ -306,6 +327,16 @@ public class FirebasePlugin extends CordovaPlugin {
         return super.onMessage(id, data);
     }
 
+    /**
+     * Entry point for all calls from the Cordova Javascript layer.
+     * Routes the requested action to the appropriate internal method.
+     *
+     * @param action The action to perform.
+     * @param args Arguments for the action.
+     * @param callbackContext The callback context for returning results.
+     * @return true if the action was recognized, false otherwise.
+     * @throws JSONException if parsing arguments fails.
+     */
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         try {
@@ -608,11 +639,22 @@ public class FirebasePlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Called when the application is paused (moved to background).
+     *
+     * @param multitasking true if the app is running in the background.
+     */
     @Override
     public void onPause(boolean multitasking) {
         FirebasePlugin.inBackground = true;
     }
 
+    /**
+     * Called when the application is resumed (moved to foreground).
+     * Automatically flushes any pending notifications to the webview.
+     *
+     * @param multitasking true if the app is running in the background.
+     */
     @Override
     public void onResume(boolean multitasking) {
         FirebasePlugin.inBackground = false;
@@ -621,6 +663,10 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Called when the webview is reset (page reload).
+     * Clears all active callbacks to prevent memory leaks or stale responses.
+     */
     @Override
     public void onReset() {
         FirebasePlugin.notificationCallbackContext = null;
@@ -629,6 +675,10 @@ public class FirebasePlugin extends CordovaPlugin {
         FirebasePlugin.authResultCallbackContext = null;
     }
 
+    /**
+     * Called when the plugin is destroyed.
+     * Cleans up listeners and clears the singleton instance.
+     */
     @Override
     public void onDestroy() {
         FirebaseAuth.getInstance().removeAuthStateListener(authStateListener);
@@ -640,6 +690,14 @@ public class FirebasePlugin extends CordovaPlugin {
         super.onDestroy();
     }
 
+    /**
+     * Called when an activity launched by the plugin returns a result.
+     * Specifically handles the result of Google Sign-In activity.
+     *
+     * @param requestCode The request code.
+     * @param resultCode The result code.
+     * @param data The intent data.
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -688,11 +746,19 @@ public class FirebasePlugin extends CordovaPlugin {
         );
     }
 
+    /**
+     * Internal method to set the callback for remote notification events.
+     *
+     * @param callbackContext The callback context.
+     */
     private void onMessageReceived(final CallbackContext callbackContext) {
         FirebasePlugin.notificationCallbackContext = callbackContext;
         sendPendingNotifications();
     }
 
+    /**
+     * Internal method to send all notifications currently in the stack to the webview.
+     */
     private synchronized void sendPendingNotifications() {
         if (FirebasePlugin.notificationStack != null) {
             this.cordova.getThreadPool().execute(new Runnable() {
@@ -710,6 +776,12 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Implementation for the 'onTokenRefresh' action.
+     * Sets the callback context for FCM token refresh events.
+     *
+     * @param callbackContext The callback context.
+     */
     private void onTokenRefresh(final CallbackContext callbackContext) {
         FirebasePlugin.tokenRefreshCallbackContext = callbackContext;
 
@@ -744,6 +816,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal method to send a notification message to the webview.
+     * If the webview is not ready or the app is in background (and not configured for immediate delivery),
+     * the message is stacked.
+     *
+     * @param bundle The notification data.
+     * @param context The application context.
+     */
     public static void sendMessage(Bundle bundle, Context context) {
         if (!FirebasePlugin.hasNotificationsCallback() || (inBackground && !immediateMessagePayloadDelivery)) {
             String packageName = context.getPackageName();
@@ -777,6 +857,11 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal method to send a new FCM token to the webview.
+     *
+     * @param token The FCM token string.
+     */
     public static void sendToken(String token) {
         if (FirebasePlugin.tokenRefreshCallbackContext == null) {
             return;
@@ -788,14 +873,30 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Checks if the application is currently in the background.
+     *
+     * @return true if in background, false if in foreground.
+     */
     public static boolean inBackground() {
         return FirebasePlugin.inBackground;
     }
 
+    /**
+     * Checks if a callback for notifications has been registered by the webview.
+     *
+     * @return true if a callback exists.
+     */
     public static boolean hasNotificationsCallback() {
         return FirebasePlugin.notificationCallbackContext != null;
     }
 
+    /**
+     * Called when the application receives a new intent.
+     * Specifically used to detect when a notification is tapped while the app is running.
+     *
+     * @param intent The new intent.
+     */
     @Override
     public void onNewIntent(Intent intent) {
         try {
@@ -813,6 +914,13 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Implementation for the 'getToken' action.
+     * Retrieves the current FCM registration token.
+     *
+     * @param args Action arguments.
+     * @param callbackContext The callback context.
+     */
     private void getToken(JSONArray args, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -844,6 +952,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'hasPermission' action.
+     * Checks if the app has permission to show notifications.
+     *
+     * @param callbackContext The callback context.
+     */
     private void hasPermission(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -864,6 +978,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'grantPermission' action.
+     * Requests runtime permission for notifications on Android 13+.
+     *
+     * @param callbackContext The callback context.
+     */
     private void grantPermission(final CallbackContext callbackContext) {
         CordovaPlugin plugin = this;
         cordova.getThreadPool().execute(new Runnable() {
@@ -889,6 +1009,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'subscribe' action.
+     * Subscribes the device to an FCM topic.
+     *
+     * @param callbackContext The callback context.
+     * @param topic The topic name.
+     */
     private void subscribe(final CallbackContext callbackContext, final String topic) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -901,6 +1028,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'unsubscribe' action.
+     * Unsubscribes the device from an FCM topic.
+     *
+     * @param callbackContext The callback context.
+     * @param topic The topic name.
+     */
     private void unsubscribe(final CallbackContext callbackContext, final String topic) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -913,6 +1047,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'unregister' action.
+     * Deletes the current FCM registration token.
+     *
+     * @param callbackContext The callback context.
+     */
     private void unregister(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -925,6 +1065,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'isAutoInitEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     */
     private void isAutoInitEnabled(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -939,6 +1084,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setAutoInitEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     * @param enabled true to enable, false to disable.
+     */
     private void setAutoInitEnabled(final CallbackContext callbackContext, final boolean enabled) {
         final FirebasePlugin self = this;
         cordova.getThreadPool().execute(new Runnable() {
@@ -955,6 +1106,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal helper to recursivey convert a JSONObject into a Bundle.
+     *
+     * @param params The source JSONObject.
+     * @return The resulting Bundle.
+     * @throws JSONException if parsing fails.
+     */
     private Bundle createBundleFromJSONObject(final JSONObject params) throws JSONException {
         final Bundle bundle = new Bundle();
         Iterator<String> iter = params.keys();
@@ -988,6 +1146,15 @@ public class FirebasePlugin extends CordovaPlugin {
         return bundle;
     }
 
+    /**
+     * Implementation for the 'logEvent' action.
+     * Logs a custom analytics event with parameters.
+     *
+     * @param callbackContext The callback context.
+     * @param name The event name.
+     * @param params The event parameters.
+     * @throws JSONException if parsing params fails.
+     */
     private void logEvent(final CallbackContext callbackContext, final String name, final JSONObject params)
             throws JSONException {
         final Bundle bundle = this.createBundleFromJSONObject(params);
@@ -1004,6 +1171,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'logError' action.
+     * Logs a Javascript error to Crashlytics as a non-fatal exception.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the message and optional stack trace.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void logError(final CallbackContext callbackContext, final JSONArray args) throws JSONException {
         final String message = args.getString(0);
 
@@ -1045,6 +1220,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setCrashlyticsCustomKey' action.
+     * Sets a custom key/value pair for crash reports.
+     *
+     * @param callbackContext The callback context.
+     * @param data Action arguments containing key and value.
+     */
     private void setCrashlyticsCustomKey(final CallbackContext callbackContext, final JSONArray data) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1080,6 +1262,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'logMessage' action.
+     * Logs a message to Crashlytics breadcrumbs.
+     *
+     * @param data Action arguments containing the message.
+     * @param callbackContext The callback context.
+     */
     private void logMessage(final JSONArray data,
                             final CallbackContext callbackContext) {
 
@@ -1092,6 +1281,13 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Implementation for the 'sendCrash' action.
+     * Forces a native crash for testing purposes.
+     *
+     * @param data Action arguments.
+     * @param callbackContext The callback context.
+     */
     private void sendCrash(final JSONArray data,
                            final CallbackContext callbackContext) {
 
@@ -1104,6 +1300,13 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Implementation for the 'setCrashlyticsUserId' action.
+     * Sets a custom user ID for crash reports.
+     *
+     * @param callbackContext The callback context.
+     * @param userId The user ID.
+     */
     private void setCrashlyticsUserId(final CallbackContext callbackContext, final String userId) {
         cordovaActivity.runOnUiThread(new Runnable() {
             public void run() {
@@ -1121,6 +1324,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setScreenName' action.
+     * Logs a screen view analytics event.
+     *
+     * @param callbackContext The callback context.
+     * @param name The screen name.
+     */
     private void setScreenName(final CallbackContext callbackContext, final String name) {
         // This must be called on the main thread
         cordovaActivity.runOnUiThread(new Runnable() {
@@ -1137,6 +1347,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setUserId' action.
+     * Sets the user ID for analytics.
+     *
+     * @param callbackContext The callback context.
+     * @param id The user ID.
+     */
     private void setUserId(final CallbackContext callbackContext, final String id) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1150,6 +1367,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setUserProperty' action.
+     * Sets a custom user property for analytics.
+     *
+     * @param callbackContext The callback context.
+     * @param name The property name.
+     * @param value The property value.
+     */
     private void setUserProperty(final CallbackContext callbackContext, final String name, final String value) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1163,14 +1388,31 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'fetch' action (no expiration).
+     *
+     * @param callbackContext The callback context.
+     */
     private void fetch(CallbackContext callbackContext) {
         fetch(callbackContext, FirebaseRemoteConfig.getInstance().fetch());
     }
 
+    /**
+     * Implementation for the 'fetch' action with cache expiration.
+     *
+     * @param callbackContext The callback context.
+     * @param cacheExpirationSeconds Cache expiration time.
+     */
     private void fetch(CallbackContext callbackContext, long cacheExpirationSeconds) {
         fetch(callbackContext, FirebaseRemoteConfig.getInstance().fetch(cacheExpirationSeconds));
     }
 
+    /**
+     * Internal method to perform a remote config fetch task.
+     *
+     * @param callbackContext The callback context.
+     * @param task The fetch task.
+     */
     private void fetch(final CallbackContext callbackContext, final Task<Void> task) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1183,6 +1425,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'activateFetched' action.
+     * Activates the last fetched remote config values.
+     *
+     * @param callbackContext The callback context.
+     */
     private void activateFetched(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1195,6 +1443,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'fetchAndActivate' action.
+     * Fetches and immediately activates remote config values.
+     *
+     * @param callbackContext The callback context.
+     */
     private void fetchAndActivate(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1207,6 +1461,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'resetRemoteConfig' action.
+     * Resets all remote config values to defaults.
+     *
+     * @param callbackContext The callback context.
+     */
     private void resetRemoteConfig(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1219,6 +1479,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getValue' action.
+     * Retrieves a single remote config value as a string.
+     *
+     * @param callbackContext The callback context.
+     * @param key The config key.
+     */
     private void getValue(final CallbackContext callbackContext, final String key) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1232,6 +1499,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getInfo' action.
+     * Returns metadata about the remote config state (fetch time, status, etc).
+     *
+     * @param callbackContext The callback context.
+     */
     private void getInfo(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1253,6 +1526,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getAll' action.
+     * Returns all active remote config values.
+     *
+     * @param callbackContext The callback context.
+     */
     private void getAll(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1273,6 +1552,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setConfigSettings' action.
+     * Configures the remote config client (timeouts, intervals).
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing settings.
+     * @throws JSONException if parsing fails.
+     */
     private void setConfigSettings(final CallbackContext callbackContext, final JSONArray args) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1295,6 +1582,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setDefaults' action.
+     * Sets local default values for remote config keys.
+     *
+     * @param callbackContext The callback context.
+     * @param defaults The defaults map.
+     */
     private void setDefaults(final CallbackContext callbackContext, final JSONObject defaults) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1307,6 +1601,17 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'didCrashOnPreviousExecution' action.
+     *
+     * @param callbackContext The callback context.
+     */
+    /**
+     * Implementation for the 'didCrashOnPreviousExecution' action.
+     * Checks if the app crashed in a prior run.
+     *
+     * @param callbackContext The callback context.
+     */
     private void didCrashOnPreviousExecution(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1323,6 +1628,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal helper to convert a JSONObject of defaults into a Map.
+     *
+     * @param object The source JSONObject.
+     * @return Resulting Map.
+     * @throws JSONException if parsing fails.
+     */
     private static Map<String, Object> defaultsToMap(JSONObject object) throws JSONException {
         final Map<String, Object> map = new HashMap<String, Object>();
 
@@ -1353,6 +1665,12 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Implementation for the 'isUserSignedIn' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void isUserSignedIn(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1366,6 +1684,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'signOutUser' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void signOutUser(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1391,6 +1715,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getCurrentUser' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void getCurrentUser(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1404,6 +1734,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'reloadCurrentUser' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void reloadCurrentUser(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1428,6 +1764,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Extracts information from the current user and returns it to the webview.
+     *
+     * @param callbackContext The callback context.
+     * @throws Exception if extraction fails.
+     */
     private void extractAndReturnUserInfo(final CallbackContext callbackContext) throws Exception {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         JSONObject returnResults = new JSONObject();
@@ -1482,6 +1824,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'updateUserProfile' action.
+     * Updates the current user's display name and/or photo URL.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the profile object.
+     */
     public void updateUserProfile(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1516,6 +1865,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'updateUserEmail' action.
+     * Updates the current user's email address.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the new email string.
+     */
     public void updateUserEmail(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1532,6 +1888,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'sendUserEmailVerification' action.
+     * Sends a verification email to the current user.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing optional ActionCodeSettings.
+     */
     public void sendUserEmailVerification(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1562,6 +1925,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'verifyBeforeUpdateEmail' action.
+     * Sends a verification email before updating the user's email.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the new email string.
+     */
     public void verifyBeforeUpdateEmail(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1578,6 +1948,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'updateUserPassword' action.
+     * Updates the current user's password.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the new password string.
+     */
     public void updateUserPassword(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1594,6 +1971,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'sendUserPasswordResetEmail' action.
+     * Sends a password reset email to a specified email address.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the email address string.
+     */
     public void sendUserPasswordResetEmail(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1608,6 +1992,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'deleteUser' action.
+     * Deletes the currently signed-in user's account.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void deleteUser(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1622,6 +2013,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'reauthenticateWithCredential' action.
+     * Re-authenticates the current user with a provided credential or OAuth provider.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the credential details.
+     */
     public void reauthenticateWithCredential(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1660,6 +2058,13 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Implementation for the 'signInWithCredential' action.
+     * Signs in a user with a provided credential or OAuth provider.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the credential details.
+     */
     public void signInWithCredential(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1694,6 +2099,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'linkUserWithCredential' action.
+     * Links the current user with a provided credential or OAuth provider.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the credential details.
+     */
     public void linkUserWithCredential(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1729,6 +2141,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'unlinkUserWithProvider' action.
+     * Unlinks a provider from the current user account.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the provider ID string.
+     */
     public void unlinkUserWithProvider(final CallbackContext callbackContext, final JSONArray args){
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -1748,12 +2167,27 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Validates if a JSONObject contains either a native credential ID or 
+     * a phone verification ID and code.
+     *
+     * @param jsonCredential The credential object to validate.
+     * @return true if valid, false otherwise.
+     * @throws JSONException if key checking fails.
+     */
     private boolean isValidJsonCredential(JSONObject jsonCredential) throws JSONException {
         return jsonCredential.has("id") || (jsonCredential.has("verificationId") && jsonCredential.has("code"));
     }
 
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks phoneAuthVerificationCallbacks;
 
+    /**
+     * Implementation for the 'verifyPhoneNumber' action.
+     * Starts the phone number verification flow.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the phone number and optional settings.
+     */
     public void verifyPhoneNumber(
             final CallbackContext callbackContext,
             final JSONArray args
@@ -1874,6 +2308,13 @@ public class FirebasePlugin extends CordovaPlugin {
         public void onCredential(PhoneAuthCredential credential);
     }
 
+    /**
+     * Implementation for the 'enrollSecondAuthFactor' action.
+     * Enrolls a second factor (like SMS) for multi-factor authentication.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the phone number and optional settings.
+     */
     public void enrollSecondAuthFactor(
             final CallbackContext callbackContext,
             final JSONArray args
@@ -2058,6 +2499,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'verifySecondAuthFactor' action.
+     * Resolves a multi-factor authentication challenge.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing challenge parameters and optional settings.
+     */
     public void verifySecondAuthFactor(
             final CallbackContext callbackContext,
             final JSONArray args
@@ -2257,6 +2705,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'listEnrolledSecondAuthFactors' action.
+     * Returns a list of all enrolled second factors for the current user.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void listEnrolledSecondAuthFactors(
             final CallbackContext callbackContext,
             final JSONArray args
@@ -2277,6 +2732,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Helper method to parse a list of MultiFactorInfo into a JSONArray.
+     *
+     * @param multiFactorInfoList The list of second factor info.
+     * @return A JSONArray of second factor details.
+     * @throws JSONException if building the JSON fails.
+     */
     private JSONArray parseEnrolledSecondFactorsToJson(List<MultiFactorInfo> multiFactorInfoList) throws JSONException {
         JSONArray secondFactors = new JSONArray();
         for (int i = 0; i < multiFactorInfoList.size(); i++) {
@@ -2295,6 +2757,13 @@ public class FirebasePlugin extends CordovaPlugin {
         return secondFactors;
     }
 
+    /**
+     * Implementation for the 'unenrollSecondAuthFactor' action.
+     * Unenrolls a specified second factor.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the factor index.
+     */
     public void unenrollSecondAuthFactor(
             final CallbackContext callbackContext,
             final JSONArray args
@@ -2332,6 +2801,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setLanguageCode' action.
+     * Sets the language code for Firebase Auth operations.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the language code string.
+     */
     public void setLanguageCode(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2353,6 +2829,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'createUserWithEmailAndPassword' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing email and password string.
+     */
     public void createUserWithEmailAndPassword(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2378,6 +2860,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'signInUserWithEmailAndPassword' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing email and password string.
+     */
     public void signInUserWithEmailAndPassword(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2403,6 +2891,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'authenticateUserWithEmailAndPassword' action.
+     * Returns a native credential ID for later use in sign-in or linking.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing email and password string.
+     */
     public void authenticateUserWithEmailAndPassword(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2435,6 +2930,13 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Implementation for the 'authenticateUserWithGoogle' action.
+     * Starts the Google Sign-In intent flow.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the server client ID.
+     */
     public void authenticateUserWithGoogle(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2457,6 +2959,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'authenticateUserWithApple' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the optional locale string.
+     */
     public void authenticateUserWithApple(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2474,6 +2982,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'authenticateUserWithMicrosoft' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the optional locale string.
+     */
     public void authenticateUserWithMicrosoft(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2496,6 +3010,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'authenticateUserWithOAuth' action.
+     * Starts authentication with an arbitrary OAuth provider.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing provider ID, custom parameters, and scopes.
+     */
     public void authenticateUserWithOAuth(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2532,6 +3053,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal implementation for OAuth authentication.
+     *
+     * @param callbackContext The callback context.
+     * @param providerId The provider ID (e.g., "apple.com").
+     * @param customParameters Map of custom OAuth parameters.
+     * @param scopes List of OAuth scopes.
+     */
     private void authenticateUserWithOAuth(final CallbackContext callbackContext, final String providerId, final Map<String, String> customParameters, final List<String> scopes){
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2566,6 +3095,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'authenticateUserWithFacebook' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the Facebook access token.
+     */
     public void authenticateUserWithFacebook(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2585,6 +3120,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'signInUserWithCustomToken' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing the custom token string.
+     */
     public void signInUserWithCustomToken(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2604,6 +3145,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'signInUserAnonymously' action.
+     *
+     * @param callbackContext The callback context.
+     */
     public void signInUserAnonymously(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2616,6 +3162,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'useAuthEmulator' action.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments containing host and port.
+     */
     public void useAuthEmulator(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2642,6 +3194,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getClaims' action.
+     * Retrieves custom claims and the ID token result.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void getClaims(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2673,6 +3232,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getProviderData' action.
+     * Returns a list of all providers linked to the current user account.
+     *
+     * @param callbackContext The callback context.
+     * @param args Action arguments.
+     */
     public void getProviderData(final CallbackContext callbackContext, final JSONArray args) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2706,6 +3272,13 @@ public class FirebasePlugin extends CordovaPlugin {
 
     private HashMap<String, Trace> traces = new HashMap<String, Trace>();
 
+    /**
+     * Implementation for the 'startTrace' action.
+     * Starts a custom performance trace.
+     *
+     * @param callbackContext The callback context.
+     * @param name The trace name.
+     */
     private void startTrace(final CallbackContext callbackContext, final String name) {
         final FirebasePlugin self = this;
         cordova.getThreadPool().execute(new Runnable() {
@@ -2732,6 +3305,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'incrementCounter' action.
+     * Increments a metric in an active performance trace.
+     *
+     * @param callbackContext The callback context.
+     * @param name The trace name.
+     * @param counterNamed The metric name.
+     */
     private void incrementCounter(final CallbackContext callbackContext, final String name, final String counterNamed) {
         final FirebasePlugin self = this;
         cordova.getThreadPool().execute(new Runnable() {
@@ -2757,6 +3338,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'stopTrace' action.
+     * Stops an active performance trace.
+     *
+     * @param callbackContext The callback context.
+     * @param name The trace name.
+     */
     private void stopTrace(final CallbackContext callbackContext, final String name) {
         final FirebasePlugin self = this;
         cordova.getThreadPool().execute(new Runnable() {
@@ -2783,6 +3371,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setAnalyticsCollectionEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     * @param enabled true to enable, false to disable.
+     */
     private void setAnalyticsCollectionEnabled(final CallbackContext callbackContext, final boolean enabled) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2798,6 +3392,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'isAnalyticsCollectionEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     */
     private void isAnalyticsCollectionEnabled(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2811,6 +3410,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setPerformanceCollectionEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     * @param enabled true to enable, false to disable.
+     */
     private void setPerformanceCollectionEnabled(final CallbackContext callbackContext, final boolean enabled) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2826,6 +3431,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'isPerformanceCollectionEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     */
     private void isPerformanceCollectionEnabled(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2839,6 +3449,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setCrashlyticsCollectionEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     * @param enabled true to enable, false to disable.
+     */
     private void setCrashlyticsCollectionEnabled(final CallbackContext callbackContext, final boolean enabled) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2854,6 +3470,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'isCrashlyticsCollectionEnabled' action.
+     *
+     * @param callbackContext The callback context.
+     */
     private void isCrashlyticsCollectionEnabled(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2867,10 +3488,22 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal helper to check if crash reporting is currently enabled.
+     *
+     * @return true if enabled, false otherwise.
+     */
     private boolean isCrashlyticsEnabled() {
         return getPreference(CRASHLYTICS_COLLECTION_ENABLED);
     }
 
+    /**
+     * Implementation for the 'setAnalyticsConsentMode' action.
+     * Sets the analytics consent mode (GDPR compliance).
+     *
+     * @param callbackContext The callback context.
+     * @param consent The consent settings object.
+     */
     private void setAnalyticsConsentMode(final CallbackContext callbackContext, final JSONObject consent) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2895,6 +3528,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'clearAllNotifications' action.
+     * Clears all notifications from the notification center.
+     *
+     * @param callbackContext The callback context.
+     */
     public void clearAllNotifications(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2909,6 +3548,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'createChannel' action.
+     *
+     * @param callbackContext The callback context.
+     * @param options The channel configuration options.
+     */
     public void createChannel(final CallbackContext callbackContext, final JSONObject options) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -2922,6 +3567,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal method to create a notification channel.
+     *
+     * @param options The channel configuration options.
+     * @return The created NotificationChannel.
+     * @throws JSONException if parsing options fails.
+     */
     protected static NotificationChannel createChannel(final JSONObject options) throws JSONException {
         NotificationChannel channel = null;
         // only call on Android O and above
@@ -3029,6 +3681,11 @@ public class FirebasePlugin extends CordovaPlugin {
         return channel;
     }
 
+    /**
+     * Internal method to create the default notification channel.
+     *
+     * @throws JSONException if building options fails.
+     */
     protected static void createDefaultChannel() throws JSONException {
         JSONObject options = new JSONObject();
         options.put("id", defaultChannelId);
@@ -3040,6 +3697,13 @@ public class FirebasePlugin extends CordovaPlugin {
         defaultNotificationChannel = createChannel(options);
     }
 
+    /**
+     * Implementation for the 'setDefaultChannel' action.
+     * Replaces the default notification channel with new settings.
+     *
+     * @param callbackContext The callback context.
+     * @param options The channel configuration options.
+     */
     public void setDefaultChannel(final CallbackContext callbackContext, final JSONObject options) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3064,6 +3728,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'deleteChannel' action.
+     *
+     * @param callbackContext The callback context.
+     * @param channelID The ID of the channel to delete.
+     */
     public void deleteChannel(final CallbackContext callbackContext, final String channelID) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3077,6 +3747,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal static method to delete a notification channel.
+     *
+     * @param channelID The ID of the channel to delete.
+     */
     protected static void deleteChannel(final String channelID) {
         // only call on Android O and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -3085,6 +3760,12 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Implementation for the 'listChannels' action.
+     * Returns a list of all registered notification channels.
+     *
+     * @param callbackContext The callback context.
+     */
     public void listChannels(final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3107,6 +3788,11 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal static method to list all notification channels.
+     *
+     * @return List of NotificationChannel objects.
+     */
     public static List<NotificationChannel> listChannels() {
         List<NotificationChannel> notificationChannels = null;
         // only call on Android O and above
@@ -3117,6 +3803,12 @@ public class FirebasePlugin extends CordovaPlugin {
         return notificationChannels;
     }
 
+    /**
+     * Internal static method to check if a notification channel exists.
+     *
+     * @param channelId The channel ID to check.
+     * @return true if it exists, false otherwise.
+     */
     public static boolean channelExists(String channelId) {
         boolean exists = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -3135,6 +3827,14 @@ public class FirebasePlugin extends CordovaPlugin {
     //
     // Firestore
     //
+    /**
+     * Implementation for the 'addDocumentToFirestoreCollection' action.
+     * Adds a new document to a Firestore collection.
+     *
+     * @param args Action arguments containing document data and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void addDocumentToFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3171,6 +3871,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'setDocumentInFirestoreCollection' action.
+     * Sets a document in a Firestore collection (overwrites if exists).
+     *
+     * @param args Action arguments containing document ID, data, and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void setDocumentInFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3207,6 +3915,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'updateDocumentInFirestoreCollection' action.
+     * Updates specific fields in a Firestore document.
+     *
+     * @param args Action arguments containing document ID, data, and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void updateDocumentInFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3243,6 +3959,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'deleteDocumentFromFirestoreCollection' action.
+     * Deletes a document from a Firestore collection.
+     *
+     * @param args Action arguments containing document ID and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void deleteDocumentFromFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3271,6 +3995,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'documentExistsInFirestoreCollection' action.
+     * Checks if a document exists in a Firestore collection.
+     *
+     * @param args Action arguments containing document ID and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void documentExistsInFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3311,6 +4043,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'fetchDocumentInFirestoreCollection' action.
+     * Fetches a single document from a Firestore collection.
+     *
+     * @param args Action arguments containing document ID and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void fetchDocumentInFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3356,6 +4096,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'listenToDocumentInFirestoreCollection' action.
+     * Starts listening for changes to a Firestore document.
+     *
+     * @param args Action arguments containing document ID and collection name.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void listenToDocumentInFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3405,6 +4153,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'fetchFirestoreCollection' action.
+     * Fetches multiple documents from a Firestore collection.
+     *
+     * @param args Action arguments containing collection name and filters.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void fetchFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3443,6 +4199,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'listenToFirestoreCollection' action.
+     * Starts listening for changes to a Firestore collection.
+     *
+     * @param args Action arguments containing collection name and filters.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void listenToFirestoreCollection(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3523,6 +4287,14 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Internal method to apply filters to a Firestore collection query.
+     *
+     * @param filters JSONArray of filter definitions.
+     * @param query The base query to apply filters to.
+     * @return The updated query.
+     * @throws JSONException if parsing filters fails.
+     */
     private Query applyFiltersToFirestoreCollectionQuery(JSONArray filters, Query query) throws JSONException {
         for (int i = 0; i < filters.length(); i++) {
             JSONArray filter = filters.getJSONArray(i);
@@ -3571,6 +4343,15 @@ public class FirebasePlugin extends CordovaPlugin {
         return query;
     }
 
+    /**
+     * Internal helper to convert a filter value to its expected type.
+     *
+     * @param filter The filter JSONArray.
+     * @param valueIndex Index of the value.
+     * @param typeIndex Index of the type string.
+     * @return The typed value.
+     * @throws JSONException if parsing fails.
+     */
     private Object getFilterValueAsType(JSONArray filter, int valueIndex, int typeIndex) throws JSONException {
         Object typedValue;
         String type = "string";
@@ -3599,6 +4380,13 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Implementation for the 'removeFirestoreListener' action.
+     *
+     * @param args Action arguments containing the listener ID.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void removeFirestoreListener(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3617,6 +4405,12 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Saves a Firestore listener and returns a unique ID.
+     *
+     * @param listenerRegistration The listener to save.
+     * @return A unique ID string.
+     */
     private String saveFirestoreListener(ListenerRegistration listenerRegistration) {
         String id = this.generateId();
         this.firestoreListeners.put(id, listenerRegistration);
@@ -3639,6 +4433,14 @@ public class FirebasePlugin extends CordovaPlugin {
     //
     // Functions
     //
+    /**
+     * Implementation for the 'functionsHttpsCallable' action.
+     * Calls a Firebase Cloud Function.
+     *
+     * @param args Action arguments containing function name and parameters.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void functionsHttpsCallable(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3702,6 +4504,13 @@ public class FirebasePlugin extends CordovaPlugin {
     //
     // Installations
     //
+    /**
+     * Implementation for the 'deleteInstallationId' action.
+     *
+     * @param args Action arguments.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void deleteInstallationId(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3714,6 +4523,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getInstallationId' action.
+     *
+     * @param args Action arguments.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void getInstallationId(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3726,6 +4542,13 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Implementation for the 'getInstallationToken' action.
+     *
+     * @param args Action arguments.
+     * @param callbackContext The callback context.
+     * @throws JSONException if parsing arguments fails.
+     */
     private void getInstallationToken(JSONArray args, CallbackContext callbackContext) throws JSONException {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
@@ -3754,6 +4577,13 @@ public class FirebasePlugin extends CordovaPlugin {
     /*
      * Helper methods
      */
+    /**
+     * Global helper to handle exceptions where a callback context is available.
+     * Logs the error, sends it to Crashlytics, and returns an error to the webview.
+     *
+     * @param e The exception.
+     * @param context The callback context.
+     */
     protected static void handleExceptionWithContext(Exception e, CallbackContext context) {
         String msg = e.toString();
         Log.e(TAG, msg);
@@ -3763,6 +4593,12 @@ public class FirebasePlugin extends CordovaPlugin {
         context.error(msg);
     }
 
+    /**
+     * Global helper to handle exceptions where no callback context is available.
+     * Logs the error, sends it to Crashlytics, and reports it to the webview via global JS.
+     *
+     * @param e The exception.
+     */
     protected static void handleExceptionWithoutContext(Exception e) {
         String msg = e.toString();
         Log.e(TAG, msg);
@@ -3772,11 +4608,24 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Helper to send a successful plugin result and keep the callback active 
+     * for multiple calls.
+     *
+     * @param result Result string.
+     * @param callbackContext The callback context.
+     */
     protected void sendPluginResultAndKeepCallback(String result, CallbackContext callbackContext) {
         PluginResult pluginresult = new PluginResult(PluginResult.Status.OK, result);
         sendPluginResultAndKeepCallback(pluginresult, callbackContext);
     }
 
+    /**
+     * Helper to send a successful plugin result (boolean) and keep the callback active.
+     *
+     * @param result Result boolean.
+     * @param callbackContext The callback context.
+     */
     protected void sendPluginResultAndKeepCallback(boolean result, CallbackContext callbackContext) {
         PluginResult pluginresult = new PluginResult(PluginResult.Status.OK, result);
         sendPluginResultAndKeepCallback(pluginresult, callbackContext);
@@ -3792,6 +4641,12 @@ public class FirebasePlugin extends CordovaPlugin {
         sendPluginResultAndKeepCallback(pluginresult, callbackContext);
     }
 
+    /**
+     * Helper to send a successful plugin result (JSONObject) and keep the callback active.
+     *
+     * @param result Result JSONObject.
+     * @param callbackContext The callback context.
+     */
     protected void sendPluginResultAndKeepCallback(JSONObject result, CallbackContext callbackContext) {
         PluginResult pluginresult = new PluginResult(PluginResult.Status.OK, result);
         sendPluginResultAndKeepCallback(pluginresult, callbackContext);
@@ -3813,12 +4668,24 @@ public class FirebasePlugin extends CordovaPlugin {
         executeGlobalJavascript("console.error(\"" + TAG + "[native]: " + escapeDoubleQuotes(msg) + "\")");
     }
 
+    /**
+     * Escapes double quotes in a string for use in Javascript execution.
+     *
+     * @param string The string to escape.
+     * @return The escaped string.
+     */
     private String escapeDoubleQuotes(String string) {
         String escapedString = string.replace("\"", "\\\"");
         escapedString = escapedString.replace("%22", "\\%22");
         return escapedString;
     }
 
+    /**
+     * Internal method to execute Javascript in the webview.
+     * Queues the execution if the webview is not ready.
+     *
+     * @param jsString The Javascript code to execute.
+     */
     private void executeGlobalJavascript(final String jsString) {
         if (pluginInitialized && onPageFinished) {
             doExecuteGlobalJavascript(jsString);
@@ -3833,6 +4700,9 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal method to execute all queued global Javascript calls.
+     */
     private void executePendingGlobalJavascript() {
         if (!pluginInitialized || !onPageFinished) {
             Log.d(TAG, "Deferring pending global JS: pluginInitialized=" + pluginInitialized + ", onPageFinished=" + onPageFinished);
@@ -3855,6 +4725,11 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal method to perform the actual Javascript execution on the UI thread.
+     *
+     * @param jsString The Javascript code to execute.
+     */
     private void doExecuteGlobalJavascript(final String jsString) {
         if (cordovaActivity == null) return;
         cordovaActivity.runOnUiThread(new Runnable() {
@@ -3878,27 +4753,57 @@ public class FirebasePlugin extends CordovaPlugin {
         });
     }
 
+    /**
+     * Saves a native AuthCredential and returns a unique ID.
+     *
+     * @param authCredential The credential to save.
+     * @return A unique ID string.
+     */
     private String saveAuthCredential(AuthCredential authCredential) {
         String id = this.generateId();
         this.authCredentials.put(id, authCredential);
         return id;
     }
 
+    /**
+     * Saves a native OAuthProvider and returns a unique ID.
+     *
+     * @param authProvider The provider to save.
+     * @return A unique ID string.
+     */
     private String saveAuthProvider(OAuthProvider authProvider) {
         String id = this.generateId();
         this.authProviders.put(id, authProvider);
         return id;
     }
 
+    /**
+     * Generates a random alphanumeric ID for use in listener tracking.
+     *
+     * @return A random ID string.
+     */
     private String generateId() {
         Random r = new Random();
         return Integer.toString(r.nextInt(1000 + 1));
     }
 
+    /**
+     * Internal helper to read a boolean metadata value from the Android manifest.
+     *
+     * @param name The metadata key.
+     * @return The boolean value.
+     * @throws Exception if reading fails.
+     */
     private boolean getMetaDataFromManifest(String name) throws Exception {
         return applicationContext.getPackageManager().getApplicationInfo(applicationContext.getPackageName(), PackageManager.GET_META_DATA).metaData.getBoolean(name);
     }
 
+    /**
+     * Internal helper to read a plugin variable from config.xml.
+     *
+     * @param name The variable name.
+     * @return The variable value as a string.
+     */
     private String getPluginVariableFromConfigXml(String name) {
         String value = null;
         try {
@@ -3909,6 +4814,12 @@ public class FirebasePlugin extends CordovaPlugin {
         return value;
     }
 
+    /**
+     * Internal helper to save a boolean preference in SharedPreferences.
+     *
+     * @param name Preference key.
+     * @param value Preference value.
+     */
     private void setPreference(String name, boolean value) {
         SharedPreferences settings = cordovaActivity.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
@@ -3916,6 +4827,13 @@ public class FirebasePlugin extends CordovaPlugin {
         editor.apply();
     }
 
+    /**
+     * Internal helper to read a boolean preference from SharedPreferences.
+     * Falls back to manifest metadata if not found in preferences.
+     *
+     * @param name Preference key.
+     * @return The boolean value.
+     */
     private boolean getPreference(String name) {
         boolean result;
         try {
@@ -3931,6 +4849,12 @@ public class FirebasePlugin extends CordovaPlugin {
         return result;
     }
 
+    /**
+     * Internal helper to handle a standard Firebase Task.
+     *
+     * @param task The task to monitor.
+     * @param callbackContext The callback context.
+     */
     private void handleTaskOutcome(@NonNull Task task, CallbackContext callbackContext) {
         try {
             task.addOnCompleteListener((OnCompleteListener<Void>) task1 -> {
@@ -3952,6 +4876,13 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Internal helper to handle a Task and signal completion via an additional TaskCompletionSource.
+     *
+     * @param task The main task.
+     * @param callbackContext The callback context.
+     * @param taskCompletionSource The secondary task completion source.
+     */
     private void handleTaskOutcomeWithAdditionalTask(@NonNull Task task, CallbackContext callbackContext, @NonNull TaskCompletionSource taskCompletionSource) {
         try {
             task.addOnCompleteListener((OnCompleteListener<Void>) task1 -> {
@@ -3977,6 +4908,12 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal helper to handle a boolean Task result.
+     *
+     * @param task The boolean task.
+     * @param callbackContext The callback context.
+     */
     private void handleTaskOutcomeWithBooleanResult(@NonNull Task<Boolean> task, CallbackContext callbackContext) {
         try {
             task.addOnCompleteListener(new OnCompleteListener<Boolean>() {
@@ -4002,6 +4939,12 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal helper to handle a string Task result.
+     *
+     * @param task The string task.
+     * @param callbackContext The callback context.
+     */
     private void handleTaskOutcomeWithStringResult(@NonNull Task<String> task, CallbackContext callbackContext) {
         try {
             task.addOnCompleteListener(new OnCompleteListener<String>() {
@@ -4027,6 +4970,12 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal helper to handle an AuthResult Task.
+     *
+     * @param task The auth result task.
+     * @param callbackContext The callback context.
+     */
     private void handleAuthTaskOutcome(@NonNull Task<AuthResult> task, CallbackContext callbackContext) {
         try {
             if (task.isSuccessful() || task.getException() == null) {
@@ -4039,10 +4988,22 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Handles success response for authentication operations.
+     *
+     * @param callbackContext The callback context.
+     */
     private void handleAuthResultSuccess(CallbackContext callbackContext){
         callbackContext.success();
     }
 
+    /**
+     * Handles failure response for authentication operations, 
+     * including multi-factor resolution triggers.
+     *
+     * @param callbackContext The callback context.
+     * @param authException The exception that occurred.
+     */
     private void handleAuthResultFailure(CallbackContext callbackContext, Exception authException){
         try {
             if (authException instanceof FirebaseAuthInvalidCredentialsException) {
@@ -4067,6 +5028,13 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Resolves a JSONObject into a native AuthCredential.
+     *
+     * @param jsonCredential The credential JSON.
+     * @return The native AuthCredential.
+     * @throws JSONException if parsing fails.
+     */
     private AuthCredential obtainAuthCredential(JSONObject jsonCredential) throws JSONException {
         AuthCredential authCredential = null;
         if (jsonCredential.has("verificationId") && jsonCredential.has("code")) {
@@ -4080,6 +5048,13 @@ public class FirebasePlugin extends CordovaPlugin {
         return authCredential;
     }
 
+    /**
+     * Resolves a JSONObject into a native OAuthProvider.
+     *
+     * @param jsonCredential The provider JSON.
+     * @return The native OAuthProvider.
+     * @throws JSONException if parsing fails.
+     */
     private OAuthProvider obtainAuthProvider(JSONObject jsonCredential) throws JSONException {
         OAuthProvider authProvider = null;
         if (jsonCredential.has("id") && FirebasePlugin.instance.authProviders.containsKey(jsonCredential.getString("id"))) {
@@ -4090,6 +5065,9 @@ public class FirebasePlugin extends CordovaPlugin {
     }
 
 
+    /**
+     * Success listener for authentication result tasks.
+     */
     private static class AuthResultOnSuccessListener implements OnSuccessListener<AuthResult> {
         @Override
         public void onSuccess(AuthResult authResult) {
@@ -4100,6 +5078,9 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Failure listener for authentication result tasks.
+     */
     private static class AuthResultOnFailureListener implements OnFailureListener {
         @Override
         public void onFailure(@NonNull Exception e) {
@@ -4110,6 +5091,9 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Complete listener for authentication result tasks.
+     */
     private static class AuthResultOnCompleteListener implements OnCompleteListener<AuthResult> {
         private final CallbackContext callbackContext;
 
@@ -4123,6 +5107,9 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Listener for Firebase Auth state changes.
+     */
     private static class AuthStateListener implements FirebaseAuth.AuthStateListener {
         @Override
         public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -4139,6 +5126,9 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Listener for Firebase ID token changes.
+     */
     private static class IdTokenListener implements FirebaseAuth.IdTokenListener {
         private int idTokenNotifyRetryCount = 0;
         @Override
@@ -4188,17 +5178,37 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Converts a JSON string to a Map.
+     *
+     * @param jsonString The JSON string.
+     * @return A Map of values.
+     * @throws JSONException if parsing fails.
+     */
     private Map<String, Object> jsonStringToMap(String jsonString) throws JSONException {
         Type type = new TypeToken<Map<String, Object>>() {
         }.getType();
         return gson.fromJson(jsonString, type);
     }
 
+    /**
+     * Converts Firestore data Map to a JSONObject, including sanitization.
+     *
+     * @param map The data map.
+     * @return The JSONObject.
+     * @throws JSONException if building JSON fails.
+     */
     private JSONObject mapFirestoreDataToJsonObject(Map<String, Object> map) throws JSONException {
         map = sanitiseFirestoreHashMap(map);
         return mapToJsonObject(map);
     }
 
+    /**
+     * Sanitizes Firestore data by converting DocumentReferences to paths.
+     *
+     * @param map The data map.
+     * @return The sanitized map.
+     */
     private Map<String, Object> sanitiseFirestoreHashMap(Map<String, Object> map) {
         Set<String> keys = map.keySet();
         for (String key : keys) {
@@ -4212,21 +5222,47 @@ public class FirebasePlugin extends CordovaPlugin {
         return map;
     }
 
+    /**
+     * Converts a Map to a JSONObject.
+     *
+     * @param map The data map.
+     * @return The JSONObject.
+     * @throws JSONException if building JSON fails.
+     */
     private JSONObject mapToJsonObject(Map<String, Object> map) throws JSONException {
         String jsonString = gson.toJson(map);
         return new JSONObject(jsonString);
     }
 
+    /**
+     * Converts an arbitrary object to a JSONObject.
+     *
+     * @param object The object.
+     * @return The JSONObject.
+     * @throws JSONException if building JSON fails.
+     */
     private JSONObject objectToJsonObject(Object object) throws JSONException {
         String jsonString = gson.toJson(object);
         return new JSONObject(jsonString);
     }
 
+    /**
+     * Converts an arbitrary object to a JSONArray.
+     *
+     * @param object The object.
+     * @return The JSONArray.
+     * @throws JSONException if building JSON fails.
+     */
     private JSONArray objectToJsonArray(Object object) throws JSONException {
         String jsonString = gson.toJson(object);
         return new JSONArray(jsonString);
     }
 
+    /**
+     * Internal helper to log a message to Crashlytics.
+     *
+     * @param message The message.
+     */
     private void logMessageToCrashlytics(String message) {
         if (isCrashlyticsEnabled()) {
             try {
@@ -4239,6 +5275,11 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Internal helper to record an exception in Crashlytics.
+     *
+     * @param exception The exception.
+     */
     private void logExceptionToCrashlytics(Exception exception) {
         if (isCrashlyticsEnabled()) {
             try {
@@ -4251,10 +5292,23 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Standardizes boolean values for returning to the Javascript layer.
+     * Android returns 0/1 for boolean plugin results normally.
+     *
+     * @param result The boolean value.
+     * @return 1 for true, 0 for false.
+     */
     private int conformBooleanForPluginResult(boolean result) {
         return result ? 1 : 0;
     }
 
+    /**
+     * Qualifies a permission string by adding the android.permission prefix if missing.
+     *
+     * @param permission The permission name.
+     * @return The qualified permission string.
+     */
     protected String qualifyPermission(String permission) {
         if (permission.startsWith("android.permission.")) {
             return permission;
@@ -4263,6 +5317,13 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Checks if the app has a specific runtime permission.
+     *
+     * @param permission The permission name.
+     * @return true if granted, false otherwise.
+     * @throws Exception if reflection fails.
+     */
     protected boolean hasRuntimePermission(String permission) throws Exception {
         boolean hasRuntimePermission = true;
         String qualifiedPermission = qualifyPermission(permission);
@@ -4277,6 +5338,14 @@ public class FirebasePlugin extends CordovaPlugin {
         return hasRuntimePermission;
     }
 
+    /**
+     * Requests runtime permissions via Cordova.
+     *
+     * @param plugin The plugin instance.
+     * @param requestCode The request code.
+     * @param permissions The list of permissions to request.
+     * @throws Exception if reflection fails.
+     */
     protected void requestPermissions(CordovaPlugin plugin, int requestCode, String[] permissions) throws Exception {
         try {
             java.lang.reflect.Method method = cordova.getClass().getMethod("requestPermissions", org.apache.cordova.CordovaPlugin.class, int.class, java.lang.String[].class);
@@ -4327,11 +5396,22 @@ public class FirebasePlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Checks if a user is currently signed in to Firebase.
+     *
+     * @return true if signed in, false otherwise.
+     */
     private boolean isUserSignedIn() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         return user != null;
     }
 
+    /**
+     * Checks if a user is signed in and returns an error if not.
+     *
+     * @param callbackContext The callback context.
+     * @return true if signed in, false if not.
+     */
     private boolean userNotSignedInError(CallbackContext callbackContext) {
         boolean signedIn = isUserSignedIn();
         if (!signedIn) {
