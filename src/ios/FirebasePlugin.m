@@ -941,7 +941,7 @@ static NSMutableArray* pendingGlobalJS = nil;
     NSString* lang = [command.arguments objectAtIndex:0];
     @try {
          [FIRAuth auth].languageCode = lang;
-         NSLog(@"Language code setted to %@!", lang);
+         NSLog(@"Language code set to %@!", lang);
     }@catch (NSException *exception) {
         [self handlePluginExceptionWithContext:exception :command];
     }
