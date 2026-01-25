@@ -21,7 +21,7 @@ var PLUGIN_ID;
 
 var PLATFORM;
 
-var setupEnv = function(){
+var setupEnv = function () {
     appName = utilities.getAppName();
     PLUGIN_ID = utilities.getPluginId();
     PLATFORM = {
@@ -60,7 +60,7 @@ var setupEnv = function(){
     };
 }
 
-module.exports = function(context){
+module.exports = function (context) {
     //get platform from the context supplied by cordova
     var platforms = context.opts.platforms;
     utilities.setContext(context);
@@ -69,76 +69,99 @@ module.exports = function(context){
     pluginVariables = utilities.parsePluginVariables();
 
     // set platform key path from plugin variable
-    if(pluginVariables.ANDROID_FIREBASE_CONFIG_FILEPATH) PLATFORM.ANDROID.src = [pluginVariables.ANDROID_FIREBASE_CONFIG_FILEPATH];
-    if(pluginVariables.IOS_FIREBASE_CONFIG_FILEPATH) PLATFORM.IOS.src = [pluginVariables.IOS_FIREBASE_CONFIG_FILEPATH];
+    if (pluginVariables.ANDROID_FIREBASE_CONFIG_FILEPATH) PLATFORM.ANDROID.src = [pluginVariables.ANDROID_FIREBASE_CONFIG_FILEPATH];
+    if (pluginVariables.IOS_FIREBASE_CONFIG_FILEPATH) PLATFORM.IOS.src = [pluginVariables.IOS_FIREBASE_CONFIG_FILEPATH];
 
 
     // Copy key files to their platform specific folders
-    if(platforms.indexOf('android') !== -1 && utilities.directoryExists(ANDROID_DIR)){
+    if (platforms.indexOf('android') !== -1 && utilities.directoryExists(ANDROID_DIR)) {
         utilities.log('Preparing Firebase on Android');
         utilities.copyKey(PLATFORM.ANDROID);
+
+        // Validate google-services.json
+        try {
+            var jsonContent = fs.readFileSync(path.resolve(PLATFORM.ANDROID.dest)).toString();
+            var json = JSON.parse(jsonContent);
+            var hasWebClientId = false;
+            if (json.client) {
+                json.client.forEach(function (c) {
+                    if (c.oauth_client) {
+                        c.oauth_client.forEach(function (oc) {
+                            if (oc.client_type === 3) {
+                                hasWebClientId = true;
+                            }
+                        });
+                    }
+                });
+            }
+            if (!hasWebClientId) {
+                utilities.warn("google-services.json does not contain a Web Client ID (client_type: 3). Android Credential Manager requires a Web Client ID.");
+            }
+        } catch (e) {
+            utilities.warn("Failed to validate google-services.json: " + e.message);
+        }
 
         var androidHelper = require("./lib/android");
 
         // Apply colours
-        if(!fs.existsSync(path.resolve(PLATFORM.ANDROID.colorsXml.target))){
+        if (!fs.existsSync(path.resolve(PLATFORM.ANDROID.colorsXml.target))) {
             fs.copyFileSync(path.resolve(PLATFORM.ANDROID.colorsXml.src), path.resolve(PLATFORM.ANDROID.colorsXml.target));
         }
 
-        const $colorsXml = utilities.parseXmlFileToJson(PLATFORM.ANDROID.colorsXml.target, {compact: true});
+        const $colorsXml = utilities.parseXmlFileToJson(PLATFORM.ANDROID.colorsXml.target, { compact: true });
         var accentColor = pluginVariables.ANDROID_ICON_ACCENT,
             $resources = $colorsXml.resources,
             existingAccent = false,
             writeChanges = false;
 
-        if($resources.color){
+        if ($resources.color) {
             var $colors = $resources.color.length ? $resources.color : [$resources.color];
-            $colors.forEach(function($color){
-                if($color._attributes.name === 'accent'){
+            $colors.forEach(function ($color) {
+                if ($color._attributes.name === 'accent') {
                     existingAccent = true;
-                    if($color._text !== accentColor){
+                    if ($color._text !== accentColor) {
                         $color._text = accentColor;
                         writeChanges = true;
                     }
                 }
             });
-        }else{
+        } else {
             $resources.color = {};
         }
 
-        if(!existingAccent){
+        if (!existingAccent) {
             var $accentColor = {
                 _attributes: {
                     name: 'accent'
                 },
                 _text: accentColor
             };
-            if($resources.color && Object.keys($resources.color).length){
-                if(typeof $resources.color.length === 'undefined'){
+            if ($resources.color && Object.keys($resources.color).length) {
+                if (typeof $resources.color.length === 'undefined') {
                     $resources.color = [$resources.color];
                 }
                 $resources.color.push($accentColor)
-            }else{
+            } else {
                 $resources.color = $accentColor;
             }
             writeChanges = true;
         }
 
-        if(writeChanges){
+        if (writeChanges) {
             utilities.writeJsonToXmlFile($colorsXml, PLATFORM.ANDROID.colorsXml.target);
             utilities.log('Updated colors.xml with accent color');
         }
 
-        if(pluginVariables['ANDROID_FIREBASE_PERFORMANCE_MONITORING'] && pluginVariables['ANDROID_FIREBASE_PERFORMANCE_MONITORING'] === 'true'){
+        if (pluginVariables['ANDROID_FIREBASE_PERFORMANCE_MONITORING'] && pluginVariables['ANDROID_FIREBASE_PERFORMANCE_MONITORING'] === 'true') {
             // Add Performance Monitoring gradle plugin for Android network traffic
-            androidHelper.addDependencyToRootGradle(PLATFORM.ANDROID.performanceGradlePlugin.classDef+":"+pluginVariables["ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION"]);
+            androidHelper.addDependencyToRootGradle(PLATFORM.ANDROID.performanceGradlePlugin.classDef + ":" + pluginVariables["ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION"]);
             androidHelper.applyPluginToAppGradle(PLATFORM.ANDROID.performanceGradlePlugin.pluginDef);
         }
 
         // Add tools namespace to manifest
-        if(fs.existsSync(path.resolve(PLATFORM.ANDROID.manifestXml))){
+        if (fs.existsSync(path.resolve(PLATFORM.ANDROID.manifestXml))) {
             const manifestContents = fs.readFileSync(path.resolve(PLATFORM.ANDROID.manifestXml)).toString();
-            if(!manifestContents.match(`xmlns:tools="http://schemas.android.com/tools"`)){
+            if (!manifestContents.match(`xmlns:tools="http://schemas.android.com/tools"`)) {
                 const manifestWithTools = manifestContents.replace(/<manifest/g, `<manifest xmlns:tools="http://schemas.android.com/tools"`);
                 fs.writeFileSync(path.resolve(PLATFORM.ANDROID.manifestXml), manifestWithTools);
                 utilities.log('Added tools namespace to AndroidManifest.xml');
@@ -146,9 +169,19 @@ module.exports = function(context){
         }
     }
 
-    if(platforms.indexOf('ios') !== -1 && utilities.directoryExists(IOS_DIR)){
+    if (platforms.indexOf('ios') !== -1 && utilities.directoryExists(IOS_DIR)) {
         utilities.log('Preparing Firebase on iOS');
         utilities.copyKey(PLATFORM.IOS);
+
+        // Validate GoogleService-Info.plist
+        try {
+            var plistContent = fs.readFileSync(path.resolve(PLATFORM.IOS.dest)).toString();
+            if (plistContent.indexOf("REVERSED_CLIENT_ID") === -1) {
+                utilities.warn("GoogleService-Info.plist does not contain REVERSED_CLIENT_ID. Google Sign-In on iOS requires this.");
+            }
+        } catch (e) {
+            utilities.warn("Failed to validate GoogleService-Info.plist: " + e.message);
+        }
 
         var helper = require("./ios/helper");
         var xcodeProjectPath = helper.getXcodeProjectPath();
@@ -159,7 +192,7 @@ module.exports = function(context){
         helper.ensureEncodedAppIdInUrlSchemes(PLATFORM.IOS)
         podFileModified = helper.applyPluginVarsToPodfile(pluginVariables, PLATFORM.IOS) || podFileModified;
 
-        if(podFileModified){
+        if (podFileModified) {
             utilities.log('Updating installed Pods');
             execSync('pod install --repo-update', {
                 cwd: path.resolve(PLATFORM.IOS.platformDir),

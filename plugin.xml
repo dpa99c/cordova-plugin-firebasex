@@ -100,9 +100,14 @@
 		<preference name="ANDROID_GSON_VERSION" default="2.13.2" />
 		<preference name="ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION" default="2.0.1" />
 		<preference name="ANDROID_GRPC_OKHTTP" default="1.75.0" />
+		<preference name="ANDROID_CREDENTIALS_VERSION" default="1.2.2" />
+		<preference name="ANDROID_GOOGLEID_VERSION" default="1.1.1" />
 
 		<framework src="com.google.android.gms:play-services-tagmanager:$ANDROID_PLAY_SERVICES_TAGMANAGER_VERSION" />
 		<framework src="com.google.android.gms:play-services-auth:$ANDROID_PLAY_SERVICES_AUTH_VERSION" />
+		<framework src="androidx.credentials:credentials:$ANDROID_CREDENTIALS_VERSION" />
+		<framework src="androidx.credentials:credentials-play-services-auth:$ANDROID_CREDENTIALS_VERSION" />
+		<framework src="com.google.android.libraries.identity.googleid:googleid:$ANDROID_GOOGLEID_VERSION" />
 		<framework src="com.google.firebase:firebase-analytics:$ANDROID_FIREBASE_ANALYTICS_VERSION" />
 		<framework src="com.google.firebase:firebase-messaging:$ANDROID_FIREBASE_MESSAGING_VERSION" />
 		<framework src="com.google.firebase:firebase-config:$ANDROID_FIREBASE_CONFIG_VERSION" />

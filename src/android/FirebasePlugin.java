@@ -138,6 +138,14 @@ import com.google.gson.reflect.TypeToken;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import androidx.credentials.CredentialManager;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.GetCredentialException;
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException;
+
 /**
  * FirebasePlugin
  *
@@ -203,6 +211,7 @@ public class FirebasePlugin extends CordovaPlugin {
     private Map<String, ListenerRegistration> firestoreListeners = new HashMap<String, ListenerRegistration>();
 
     private MultiFactorResolver multiFactorResolver = null;
+    private CredentialManager credentialManager;
 
     /**
      * Initializes the plugin.
@@ -268,6 +277,8 @@ public class FirebasePlugin extends CordovaPlugin {
                     firestore = FirebaseFirestore.getInstance();
                     functions = FirebaseFunctions.getInstance();
 
+                    credentialManager = CredentialManager.create(applicationContext);
+
                     gson = new GsonBuilder()
                             .registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
                                 public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
@@ -326,6 +337,7 @@ public class FirebasePlugin extends CordovaPlugin {
         }
         return super.onMessage(id, data);
     }
+
 
     /**
      * Entry point for all calls from the Cordova Javascript layer.
@@ -2942,21 +2954,76 @@ public class FirebasePlugin extends CordovaPlugin {
             public void run() {
                 try {
                     String clientId = args.getString(0);
+                    JSONObject options = args.optJSONObject(1);
+                    boolean useCredentialManager = false; 
 
-                    GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken(clientId)
-                            .requestEmail()
-                            .build();
+                    if (options != null && options.has("useCredentialManager")) {
+                        useCredentialManager = options.getBoolean("useCredentialManager");
+                    }
 
-                    GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(FirebasePlugin.instance.cordovaActivity, gso);
-                    Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                    FirebasePlugin.activityResultCallbackContext = callbackContext;
-                    FirebasePlugin.instance.cordovaInterface.startActivityForResult(FirebasePlugin.instance, signInIntent, GOOGLE_SIGN_IN);
+                    if (useCredentialManager) {
+                       signInWithCredentialManager(clientId, callbackContext);
+                    } else {
+                        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestIdToken(clientId)
+                                .requestEmail()
+                                .build();
+
+                        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(FirebasePlugin.instance.cordovaActivity, gso);
+                        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                        FirebasePlugin.activityResultCallbackContext = callbackContext;
+                        FirebasePlugin.instance.cordovaInterface.startActivityForResult(FirebasePlugin.instance, signInIntent, GOOGLE_SIGN_IN);
+                    }
                 } catch (Exception e) {
                     handleExceptionWithContext(e, callbackContext);
                 }
             }
         });
+    }
+
+    private void signInWithCredentialManager(String clientId, final CallbackContext callbackContext) {
+        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(clientId)
+                .setAutoSelectEnabled(true)
+                .build();
+
+        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build();
+
+        credentialManager.getCredentialAsync(
+                cordovaActivity,
+                request,
+                new android.os.CancellationSignal(),
+                cordova.getThreadPool(),
+                new androidx.credentials.CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse result) {
+                        try {
+                            com.google.android.libraries.identity.googleid.GoogleIdTokenCredential credential = 
+                                com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.createFrom(result.getCredential().getData());
+                            
+                            String idToken = credential.getIdToken();
+                            String id = FirebasePlugin.instance.saveAuthCredential(GoogleAuthProvider.getCredential(idToken, null));
+
+                            JSONObject returnResults = new JSONObject();
+                            returnResults.put("instantVerification", true);
+                            returnResults.put("id", id);
+                            returnResults.put("idToken", idToken);
+                            
+                            callbackContext.success(returnResults);
+                        } catch (Exception e) {
+                            handleExceptionWithContext(e, callbackContext);
+                        }
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException e) {
+                         callbackContext.error(e.getMessage());
+                    }
+                }
+        );
     }
 
     /**

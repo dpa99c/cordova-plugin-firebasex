@@ -1,60 +1,60 @@
 var exec = require('cordova/exec');
 
-var ensureBooleanFn = function (callback){
-    return function(result){
+var ensureBooleanFn = function (callback) {
+    return function (result) {
         callback(ensureBoolean(result));
     }
 };
 
-var ensureBoolean = function(value){
-    if(value === "true"){
+var ensureBoolean = function (value) {
+    if (value === "true") {
         value = true;
-    }else if(value === "false"){
+    } else if (value === "false") {
         value = false;
     }
     return !!value;
 };
 
-var handleAuthErrorResult = function(errorCallback){
-    return function(result){
+var handleAuthErrorResult = function (errorCallback) {
+    return function (result) {
         var errorMessage, secondFactors;
-        if(typeof result === 'object'){
+        if (typeof result === 'object') {
             errorMessage = result.errorMessage;
             secondFactors = result.secondFactors;
-        }else{
+        } else {
             errorMessage = result;
         }
         errorCallback(errorMessage, secondFactors);
     }
 };
 
-var onAuthStateChangeCallback = function(){};
-var onAuthIdTokenChangeCallback = function(){};
-var onInstallationIdChangeCallback = function(){};
-var onApplicationDidBecomeActiveCallback = function(){};
-var onApplicationDidEnterBackgroundCallback = function(){};
+var onAuthStateChangeCallback = function () { };
+var onAuthIdTokenChangeCallback = function () { };
+var onInstallationIdChangeCallback = function () { };
+var onApplicationDidBecomeActiveCallback = function () { };
+var onApplicationDidEnterBackgroundCallback = function () { };
 
 /***********************
  * Protected internals
  ***********************/
-exports._onAuthStateChange = function(userSignedIn){
+exports._onAuthStateChange = function (userSignedIn) {
     onAuthStateChangeCallback(userSignedIn);
 };
 
-exports._onAuthIdTokenChange = function(token){
+exports._onAuthIdTokenChange = function (token) {
     onAuthIdTokenChangeCallback(token);
 };
 
-exports._onInstallationIdChangeCallback = function(installationId){
+exports._onInstallationIdChangeCallback = function (installationId) {
     onInstallationIdChangeCallback(installationId);
 };
 
 // iOS only
-exports._applicationDidBecomeActive = function(){
+exports._applicationDidBecomeActive = function () {
     onApplicationDidBecomeActiveCallback();
 };
 
-exports._applicationDidEnterBackground = function(){
+exports._applicationDidEnterBackground = function () {
     onApplicationDidEnterBackgroundCallback();
 };
 
@@ -64,19 +64,19 @@ exports._applicationDidEnterBackground = function(){
 
 // Notifications
 exports.getToken = function (success, error) {
-  exec(success, error, "FirebasePlugin", "getToken", []);
+    exec(success, error, "FirebasePlugin", "getToken", []);
 };
 
 exports.getAPNSToken = function (success, error) {
-  exec(success, error, "FirebasePlugin", "getAPNSToken", []);
+    exec(success, error, "FirebasePlugin", "getAPNSToken", []);
 };
 
 exports.onMessageReceived = function (success, error) {
-  exec(success, error, "FirebasePlugin", "onMessageReceived", []);
+    exec(success, error, "FirebasePlugin", "onMessageReceived", []);
 };
 
 exports.onTokenRefresh = function (success, error) {
-  exec(success, error, "FirebasePlugin", "onTokenRefresh", []);
+    exec(success, error, "FirebasePlugin", "onTokenRefresh", []);
 };
 
 exports.onApnsTokenReceived = function (success, error) {
@@ -84,15 +84,15 @@ exports.onApnsTokenReceived = function (success, error) {
 };
 
 exports.subscribe = function (topic, success, error) {
-  exec(success, error, "FirebasePlugin", "subscribe", [topic]);
+    exec(success, error, "FirebasePlugin", "subscribe", [topic]);
 };
 
 exports.unsubscribe = function (topic, success, error) {
-  exec(success, error, "FirebasePlugin", "unsubscribe", [topic]);
+    exec(success, error, "FirebasePlugin", "unsubscribe", [topic]);
 };
 
 exports.unregister = function (success, error) {
-  exec(success, error, "FirebasePlugin", "unregister", []);
+    exec(success, error, "FirebasePlugin", "unregister", []);
 };
 
 exports.isAutoInitEnabled = function (success, error) {
@@ -105,7 +105,7 @@ exports.setAutoInitEnabled = function (enabled, success, error) {
 
 // Notifications - iOS-only
 exports.onOpenSettings = function (success, error) {
-  exec(success, error, "FirebasePlugin", "onOpenSettings", []);
+    exec(success, error, "FirebasePlugin", "onOpenSettings", []);
 };
 
 exports.setBadgeNumber = function (number, success, error) {
@@ -170,29 +170,29 @@ exports.AnalyticsConsentStatus = {
     DENIED: "DENIED"
 };
 
-exports.setAnalyticsConsentMode = function(consent, success, error) {
+exports.setAnalyticsConsentMode = function (consent, success, error) {
     exec(success, error, "FirebasePlugin", "setAnalyticsConsentMode", [consent]);
 };
 
 exports.logEvent = function (name, params, success, error) {
-  exec(success, error, "FirebasePlugin", "logEvent", [name, params]);
+    exec(success, error, "FirebasePlugin", "logEvent", [name, params]);
 };
 
 exports.setScreenName = function (name, success, error) {
-  exec(success, error, "FirebasePlugin", "setScreenName", [name]);
+    exec(success, error, "FirebasePlugin", "setScreenName", [name]);
 };
 
 exports.setUserId = function (id, success, error) {
-  exec(success, error, "FirebasePlugin", "setUserId", [id]);
+    exec(success, error, "FirebasePlugin", "setUserId", [id]);
 };
 
 exports.setUserProperty = function (name, value, success, error) {
-  exec(success, error, "FirebasePlugin", "setUserProperty", [name, value]);
+    exec(success, error, "FirebasePlugin", "setUserProperty", [name, value]);
 };
 
 // iOS-only
-exports.initiateOnDeviceConversionMeasurement = function(userIdentifier, success, error){
-    if(typeof userIdentifier !== "object"
+exports.initiateOnDeviceConversionMeasurement = function (userIdentifier, success, error) {
+    if (typeof userIdentifier !== "object"
         || (!userIdentifier.emailAddress && !userIdentifier.phoneNumber)
         || (userIdentifier.emailAddress && userIdentifier.phoneNumber)
     ) throw "The 'userIdentifier' argument must be an object containing EITHER an 'emailAddress' OR 'phoneNumber' key";
@@ -212,7 +212,7 @@ exports.fetch = function (cacheExpirationSeconds, success, error) {
 };
 
 exports.activateFetched = function (success, error) {
-  exec(ensureBooleanFn(success), error, "FirebasePlugin", "activateFetched", []);
+    exec(ensureBooleanFn(success), error, "FirebasePlugin", "activateFetched", []);
 };
 
 exports.fetchAndActivate = function (success, error) {
@@ -224,19 +224,19 @@ exports.resetRemoteConfig = function (success, error) {
 };
 
 exports.getValue = function (key, success, error) {
-  exec(success, error, "FirebasePlugin", "getValue", [key]);
+    exec(success, error, "FirebasePlugin", "getValue", [key]);
 };
 
 exports.getInfo = function (success, error) {
-  exec(success, error, "FirebasePlugin", "getInfo", []);
+    exec(success, error, "FirebasePlugin", "getInfo", []);
 };
 
 exports.setConfigSettings = function (fetchTimeout, minimumFetchInterval, success, error) {
-  exec(success, error, "FirebasePlugin", "setConfigSettings", [fetchTimeout, minimumFetchInterval]);
+    exec(success, error, "FirebasePlugin", "setConfigSettings", [fetchTimeout, minimumFetchInterval]);
 };
 
 exports.setDefaults = function (defaults, success, error) {
-  exec(success, error, "FirebasePlugin", "setDefaults", [defaults]);
+    exec(success, error, "FirebasePlugin", "setDefaults", [defaults]);
 };
 
 exports.getAll = function (success, error) {
@@ -244,19 +244,19 @@ exports.getAll = function (success, error) {
 };
 
 exports.startTrace = function (name, success, error) {
-  exec(success, error, "FirebasePlugin", "startTrace", [name]);
+    exec(success, error, "FirebasePlugin", "startTrace", [name]);
 };
 
 exports.incrementCounter = function (name, counterNamed, success, error) {
-  exec(success, error, "FirebasePlugin", "incrementCounter", [name, counterNamed]);
+    exec(success, error, "FirebasePlugin", "incrementCounter", [name, counterNamed]);
 };
 
 exports.stopTrace = function (name, success, error) {
-  exec(success, error, "FirebasePlugin", "stopTrace", [name]);
+    exec(success, error, "FirebasePlugin", "stopTrace", [name]);
 };
 
 exports.setPerformanceCollectionEnabled = function (enabled, success, error) {
-  exec(success, error, "FirebasePlugin", "setPerformanceCollectionEnabled", [!!enabled]);
+    exec(success, error, "FirebasePlugin", "setPerformanceCollectionEnabled", [!!enabled]);
 };
 
 exports.isPerformanceCollectionEnabled = function (success, error) {
@@ -264,7 +264,7 @@ exports.isPerformanceCollectionEnabled = function (success, error) {
 };
 
 exports.clearAllNotifications = function (success, error) {
-  exec(success, error, "FirebasePlugin", "clearAllNotifications", []);
+    exec(success, error, "FirebasePlugin", "clearAllNotifications", []);
 };
 
 
@@ -286,17 +286,17 @@ exports.sendCrash = function (success, error) {
 };
 
 exports.logError = function (message, stackTrace, success, error) {
-  var args = [message];
-  // "stackTrace" is an optional arg that's an array of objects.
-  if (stackTrace) {
-    if (typeof stackTrace === 'function') {
-      error = success;
-      success = stackTrace;
-    } else {
-      args.push(stackTrace);
+    var args = [message];
+    // "stackTrace" is an optional arg that's an array of objects.
+    if (stackTrace) {
+        if (typeof stackTrace === 'function') {
+            error = success;
+            success = stackTrace;
+        } else {
+            args.push(stackTrace);
+        }
     }
-  }
-  exec(success, error, "FirebasePlugin", "logError", args);
+    exec(success, error, "FirebasePlugin", "logError", args);
 };
 
 exports.setCrashlyticsUserId = function (userId, success, error) {
@@ -314,9 +314,9 @@ exports.didCrashOnPreviousExecution = function (success, error) {
 
 // Authentication
 exports.verifyPhoneNumber = function (success, error, phoneNumber, opts) {
-    if(typeof opts !== 'object') opts = {};
-    exec(function(credential){
-        if(typeof credential === 'object'){
+    if (typeof opts !== 'object') opts = {};
+    exec(function (credential) {
+        if (typeof credential === 'object') {
             credential.instantVerification = ensureBoolean(credential.instantVerification);
         }
         success(credential);
@@ -324,10 +324,10 @@ exports.verifyPhoneNumber = function (success, error, phoneNumber, opts) {
 };
 
 exports.enrollSecondAuthFactor = function (success, error, number, opts) {
-    if(typeof opts !== 'object') opts = {};
-    if(!opts.displayName){
+    if (typeof opts !== 'object') opts = {};
+    if (!opts.displayName) {
         // Use masked version of phone number as display name
-        var s_number = number+'',
+        var s_number = number + '',
             last4Digits = s_number.slice(-4),
             firstDigits = s_number.slice(0, -4);
         opts.displayName = firstDigits.replace(/[0-9]/g, '*') + last4Digits;
@@ -336,8 +336,8 @@ exports.enrollSecondAuthFactor = function (success, error, number, opts) {
 };
 
 exports.verifySecondAuthFactor = function (success, error, params, opts) {
-    if(typeof params !== 'object') return error("'params' object must be specified");
-    if(typeof opts !== 'object') opts = {};
+    if (typeof params !== 'object') return error("'params' object must be specified");
+    if (typeof opts !== 'object') opts = {};
     exec(success, error, "FirebasePlugin", "verifySecondAuthFactor", [params, opts]);
 };
 
@@ -366,15 +366,16 @@ exports.authenticateUserWithEmailAndPassword = function (email, password, succes
 };
 
 exports.signInUserWithCustomToken = function (customToken, success, error) {
-  exec(success, handleAuthErrorResult(error), "FirebasePlugin", "signInUserWithCustomToken", [customToken]);
+    exec(success, handleAuthErrorResult(error), "FirebasePlugin", "signInUserWithCustomToken", [customToken]);
 };
 
 exports.signInUserAnonymously = function (success, error) {
-  exec(success, error, "FirebasePlugin", "signInUserAnonymously");
+    exec(success, error, "FirebasePlugin", "signInUserAnonymously");
 };
 
-exports.authenticateUserWithGoogle = function (clientId, success, error) {
-    exec(success, error, "FirebasePlugin", "authenticateUserWithGoogle", [clientId]);
+exports.authenticateUserWithGoogle = function (clientId, success, error, options) {
+    if (typeof options !== 'object') options = {};
+    exec(success, error, "FirebasePlugin", "authenticateUserWithGoogle", [clientId, options]);
 };
 
 exports.authenticateUserWithApple = function (success, error, locale) {
@@ -382,7 +383,7 @@ exports.authenticateUserWithApple = function (success, error, locale) {
 };
 
 exports.authenticateUserWithMicrosoft = function (success, error, locale) {
-  exec(success, error, "FirebasePlugin", "authenticateUserWithMicrosoft", [locale]);
+    exec(success, error, "FirebasePlugin", "authenticateUserWithMicrosoft", [locale]);
 };
 
 exports.authenticateUserWithFacebook = function (accessToken, success, error) {
@@ -390,27 +391,27 @@ exports.authenticateUserWithFacebook = function (accessToken, success, error) {
 };
 
 exports.authenticateUserWithOAuth = function (success, error, providerId, customParameters, scopes) {
-    if(typeof providerId !== 'string') return error("'providerId' must be a string");
+    if (typeof providerId !== 'string') return error("'providerId' must be a string");
     exec(success, error, "FirebasePlugin", "authenticateUserWithOAuth", [providerId, customParameters, scopes]);
 };
 
 exports.signInWithCredential = function (credential, success, error) {
-    if(typeof credential !== 'object') return error("'credential' must be an object");
+    if (typeof credential !== 'object') return error("'credential' must be an object");
     exec(success, handleAuthErrorResult(error), "FirebasePlugin", "signInWithCredential", [credential]);
 };
 
 exports.linkUserWithCredential = function (credential, success, error) {
-    if(typeof credential !== 'object') return error("'credential' must be an object");
+    if (typeof credential !== 'object') return error("'credential' must be an object");
     exec(success, handleAuthErrorResult(error), "FirebasePlugin", "linkUserWithCredential", [credential]);
 };
 
 exports.reauthenticateWithCredential = function (credential, success, error) {
-    if(typeof credential !== 'object') return error("'credential' must be an object");
+    if (typeof credential !== 'object') return error("'credential' must be an object");
     exec(success, handleAuthErrorResult(error), "FirebasePlugin", "reauthenticateWithCredential", [credential]);
 };
 
 exports.unlinkUserWithProvider = function (providerId, success, error) {
-    if(typeof providerId !== 'string') return error("'providerId' must be a string");
+    if (typeof providerId !== 'string') return error("'providerId' must be a string");
     exec(success, handleAuthErrorResult(error), "FirebasePlugin", "unlinkUserWithProvider", [providerId]);
 };
 
@@ -424,26 +425,26 @@ exports.signOutUser = function (success, error) {
 
 
 exports.getCurrentUser = function (success, error) {
-    exec(function(user){
+    exec(function (user) {
         user.emailIsVerified = ensureBoolean(user.emailIsVerified);
         success(user);
     }, error, "FirebasePlugin", "getCurrentUser", []);
 };
 
 exports.reloadCurrentUser = function (success, error) {
-    exec(function(user){
+    exec(function (user) {
         user.emailIsVerified = ensureBoolean(user.emailIsVerified);
         success(user);
     }, error, "FirebasePlugin", "reloadCurrentUser", []);
 };
 
 exports.updateUserProfile = function (profile, success, error) {
-    if(typeof profile !== 'object') return error("'profile' must be an object with keys 'name' and/or 'photoUri'");
+    if (typeof profile !== 'object') return error("'profile' must be an object with keys 'name' and/or 'photoUri'");
     exec(success, error, "FirebasePlugin", "updateUserProfile", [profile]);
 };
 
 exports.updateUserEmail = function (email, success, error) {
-    if(typeof email !== 'string' || !email) return error("'email' must be a valid email address");
+    if (typeof email !== 'string' || !email) return error("'email' must be a valid email address");
     exec(success, error, "FirebasePlugin", "updateUserEmail", [email]);
 };
 
@@ -452,17 +453,17 @@ exports.sendUserEmailVerification = function (actionCodeSettings, success, error
 };
 
 exports.verifyBeforeUpdateEmail = function (email, success, error) {
-    if(typeof email !== 'string' || !email) return error("'email' must be a valid email address");
+    if (typeof email !== 'string' || !email) return error("'email' must be a valid email address");
     exec(success, error, "FirebasePlugin", "verifyBeforeUpdateEmail", [email]);
 };
 
 exports.updateUserPassword = function (password, success, error) {
-    if(typeof password !== 'string' || !password) return error("'password' must be a valid string");
+    if (typeof password !== 'string' || !password) return error("'password' must be a valid string");
     exec(success, error, "FirebasePlugin", "updateUserPassword", [password]);
 };
 
 exports.sendUserPasswordResetEmail = function (email, success, error) {
-    if(typeof email !== 'string' || !email) return error("'email' must be a valid email address");
+    if (typeof email !== 'string' || !email) return error("'email' must be a valid email address");
     exec(success, error, "FirebasePlugin", "sendUserPasswordResetEmail", [email]);
 };
 
@@ -470,13 +471,13 @@ exports.deleteUser = function (success, error) {
     exec(success, error, "FirebasePlugin", "deleteUser", []);
 };
 
-exports.registerAuthStateChangeListener = function(fn){
-    if(typeof fn !== "function") throw "The specified argument must be a function";
+exports.registerAuthStateChangeListener = function (fn) {
+    if (typeof fn !== "function") throw "The specified argument must be a function";
     onAuthStateChangeCallback = fn;
 };
 
-exports.registerAuthIdTokenChangeListener = function(fn){
-    if(typeof fn !== "function") throw "The specified argument must be a function";
+exports.registerAuthIdTokenChangeListener = function (fn) {
+    if (typeof fn !== "function") throw "The specified argument must be a function";
     onAuthIdTokenChangeCallback = fn;
 };
 
@@ -490,8 +491,8 @@ exports.getClaims = function (success, error) {
 
 // Firestore
 exports.addDocumentToFirestoreCollection = function (document, collection, timestamp, success, error) {
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
-    if(typeof document !== 'object' || typeof document.length === 'number') return error("'document' must be an object specifying record data");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof document !== 'object' || typeof document.length === 'number') return error("'document' must be an object specifying record data");
 
     if (typeof timestamp !== "boolean" && typeof error === "undefined") {
         error = success;
@@ -503,9 +504,9 @@ exports.addDocumentToFirestoreCollection = function (document, collection, times
 };
 
 exports.setDocumentInFirestoreCollection = function (documentId, document, collection, timestamp, success, error) {
-    if(typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
-    if(typeof document !== 'object' || typeof document.length === 'number') return error("'document' must be an object specifying record data");
+    if (typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof document !== 'object' || typeof document.length === 'number') return error("'document' must be an object specifying record data");
 
     if (typeof timestamp !== "boolean" && typeof error === "undefined") {
         error = success;
@@ -517,9 +518,9 @@ exports.setDocumentInFirestoreCollection = function (documentId, document, colle
 };
 
 exports.updateDocumentInFirestoreCollection = function (documentId, document, collection, timestamp, success, error) {
-    if(typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
-    if(typeof document !== 'object' || typeof document.length === 'number') return error("'document' must be an object specifying record data");
+    if (typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof document !== 'object' || typeof document.length === 'number') return error("'document' must be an object specifying record data");
 
     if (typeof timestamp !== "boolean" && typeof error === "undefined") {
         error = success;
@@ -531,56 +532,56 @@ exports.updateDocumentInFirestoreCollection = function (documentId, document, co
 };
 
 exports.deleteDocumentFromFirestoreCollection = function (documentId, collection, success, error) {
-    if(typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
 
     exec(success, error, "FirebasePlugin", "deleteDocumentFromFirestoreCollection", [documentId.toString(), collection]);
 };
 
 exports.documentExistsInFirestoreCollection = function (documentId, collection, success, error) {
-    if(typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
 
     exec(ensureBooleanFn(success), error, "FirebasePlugin", "documentExistsInFirestoreCollection", [documentId.toString(), collection]);
 };
 
 exports.fetchDocumentInFirestoreCollection = function (documentId, collection, success, error) {
-    if(typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
 
     exec(success, error, "FirebasePlugin", "fetchDocumentInFirestoreCollection", [documentId.toString(), collection]);
 };
 
 exports.fetchFirestoreCollection = function (collection, filters, success, error) {
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
-    if(filters && (typeof filters !== 'object' || typeof filters.length === 'undefined' || (filters.length && typeof filters[0] !== 'object'))) return error("'filters' must be a array specifying a list of filters (as arrays) to apply to documents in the Firestore collection");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (filters && (typeof filters !== 'object' || typeof filters.length === 'undefined' || (filters.length && typeof filters[0] !== 'object'))) return error("'filters' must be a array specifying a list of filters (as arrays) to apply to documents in the Firestore collection");
 
     exec(success, error, "FirebasePlugin", "fetchFirestoreCollection", [collection, filters || []]);
 };
 
 exports.listenToDocumentInFirestoreCollection = function (success, error, documentId, collection, includeMetadata) {
-    if(typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (typeof documentId !== 'string' && typeof documentId !== 'number') return error("'documentId' must be a string or number specifying the Firestore document identifier");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
 
     exec(success, error, "FirebasePlugin", "listenToDocumentInFirestoreCollection", [documentId.toString(), collection, includeMetadata]);
 };
 
 exports.listenToFirestoreCollection = function (success, error, collection, filters, includeMetadata) {
-    if(typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
-    if(filters && (typeof filters !== 'object' || typeof filters.length === 'undefined')) return error("'filters' must be a array specifying a list of filters to apply to documents in the Firestore collection");
+    if (typeof collection !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    if (filters && (typeof filters !== 'object' || typeof filters.length === 'undefined')) return error("'filters' must be a array specifying a list of filters to apply to documents in the Firestore collection");
 
     exec(success, error, "FirebasePlugin", "listenToFirestoreCollection", [collection, filters, includeMetadata]);
 };
 
 exports.removeFirestoreListener = function (success, error, listenerId) {
-    if(typeof listenerId === 'undefined') return error("'listenerId' must be specified");
+    if (typeof listenerId === 'undefined') return error("'listenerId' must be specified");
 
     exec(success, error, "FirebasePlugin", "removeFirestoreListener", [listenerId.toString()]);
 };
 
 exports.functionsHttpsCallable = function (name, args, success, error) {
-  if(typeof name !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
-  exec(success, error, "FirebasePlugin", "functionsHttpsCallable", [name, args]);
+    if (typeof name !== 'string') return error("'collection' must be a string specifying the Firestore collection name");
+    exec(success, error, "FirebasePlugin", "functionsHttpsCallable", [name, args]);
 };
 
 // Installations
@@ -600,18 +601,18 @@ exports.deleteInstallationId = function (success, error) {
     exec(success, error, "FirebasePlugin", "deleteInstallationId", []);
 };
 
-exports.registerInstallationIdChangeListener = function(fn){
-    if(typeof fn !== "function") throw "The specified argument must be a function";
+exports.registerInstallationIdChangeListener = function (fn) {
+    if (typeof fn !== "function") throw "The specified argument must be a function";
     onInstallationIdChangeCallback = fn;
 };
 
 // iOS App Lifecycle
-exports.registerApplicationDidBecomeActiveListener = function(fn){
-    if(typeof fn !== "function") throw "The specified argument must be a function";
+exports.registerApplicationDidBecomeActiveListener = function (fn) {
+    if (typeof fn !== "function") throw "The specified argument must be a function";
     onApplicationDidBecomeActiveCallback = fn;
 };
 
-exports.registerApplicationDidEnterBackgroundListener = function(fn){
-    if(typeof fn !== "function") throw "The specified argument must be a function";
+exports.registerApplicationDidEnterBackgroundListener = function (fn) {
+    if (typeof fn !== "function") throw "The specified argument must be a function";
     onApplicationDidEnterBackgroundCallback = fn;
 };

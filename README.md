@@ -3701,6 +3701,8 @@ Authenticates the user with a Google account to obtain a credential that can be 
     -   {string} id - the identifier of a native credential object which can be used for signing in the user.
     -   {string} idToken - the identiy token from Google account. Could be useful if you want to sign-in with on JS layer.
 -   {function} error - callback function which will be passed a {string} error message as an argument
+-   {object} options - (optional) Map of options.
+    -   {boolean} useCredentialManager - (Android only) If true, use Android Credential Manager API. Defaults to false.
 
 Example usage:
 
@@ -3720,6 +3722,9 @@ FirebasePlugin.authenticateUserWithGoogle(
     },
     function (error) {
         console.error("Failed to authenticate with Google: " + error);
+    },
+    {
+        useCredentialManager: true
     }
 );
 ```
@@ -3732,6 +3737,26 @@ To use Google Sign-in in your Android app you need to do the following:
 -   Enable Google Sign-in in the Firebase console
 
 For details how to do the above, see the [Google Sign-In on Android page](https://firebase.google.com/docs/auth/android/google-signin) in the Firebase documentation.
+
+#### iOS
+
+To use Google Sign-In on iOS:
+
+-   Ensure `GoogleService-Info.plist` is present in your project root.
+-   The plugin automatically configures the `REVERSED_CLIENT_ID` URL scheme.
+
+**SceneDelegate Support (iOS 13+)**:
+
+If your app uses `SceneDelegate`, you must handle the URL callback and forward it to `GIDSignIn`.
+
+```swift
+import GoogleSignIn
+
+func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    guard let url = URLContexts.first?.url else { return }
+    GIDSignIn.sharedInstance.handle(url)
+}
+```
 
 <br>
 

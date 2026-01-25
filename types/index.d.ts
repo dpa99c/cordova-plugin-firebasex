@@ -276,7 +276,10 @@ export interface FirebasePlugin {
     authenticateUserWithGoogle(
         clientId: string,
         success?: (credential: object) => void,
-        error?: (err: string) => void
+        error?: (err: string) => void,
+        options?: {
+            useCredentialManager?: boolean
+        }
     ): void
     authenticateUserWithApple(
         success?: (credential: object) => void,
