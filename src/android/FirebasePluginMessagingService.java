@@ -64,11 +64,14 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
         }
     }
 
+    private static final int NETWORK_TIMEOUT_MS = 15000; // 15 seconds timeout for network requests
+
     public Bitmap getBitmapFromURL(String strURL) {
         try {
             URL url = new URL(strURL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(15000);
+            connection.setConnectTimeout(NETWORK_TIMEOUT_MS);
+            connection.setReadTimeout(NETWORK_TIMEOUT_MS);
             connection.setDoInput(true);
             connection.connect();
             InputStream input = connection.getInputStream();
