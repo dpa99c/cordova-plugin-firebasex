@@ -168,7 +168,7 @@ public class FirebasePlugin extends CordovaPlugin {
 
     private static final String GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED = "google_analytics_adid_collection_enabled";
     private static final String GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE = "google_analytics_default_allow_analytics_storage";
-    private static final String GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE = "firebase_performance_collectigoogle_analytics_default_allow_ad_storageon_enabled";
+    private static final String GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE = "google_analytics_default_allow_ad_storage";
     private static final String GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA = "google_analytics_default_allow_ad_user_data";
     private static final String GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS = "google_analytics_default_allow_ad_personalization_signals";
 
@@ -2345,7 +2345,7 @@ public class FirebasePlugin extends CordovaPlugin {
 
                     FirebaseAuth.getInstance().setLanguageCode(lang);
 
-                    Log.d(TAG, "Language code setted to " + lang);
+                    Log.d(TAG, "Language code set to " + lang);
                 } catch (Exception e) {
                     handleExceptionWithContext(e, callbackContext);
                 }
@@ -4335,7 +4335,7 @@ public class FirebasePlugin extends CordovaPlugin {
     private boolean userNotSignedInError(CallbackContext callbackContext) {
         boolean signedIn = isUserSignedIn();
         if (!signedIn) {
-            callbackContext.error("No user is currently signed");
+            callbackContext.error("No user is currently signed in");
         }
         return signedIn;
     }
