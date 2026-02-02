@@ -200,6 +200,10 @@ exports.initiateOnDeviceConversionMeasurement = function(userIdentifier, success
     exec(success, error, "FirebasePlugin", "initiateOnDeviceConversionMeasurement", [userIdentifier]);
 }
 
+exports.getAppInstanceId = function(success, error) {
+    exec(success, error, "FirebasePlugin", "getAppInstanceId", []);
+};
+
 exports.fetch = function (cacheExpirationSeconds, success, error) {
     var args = [];
     if (typeof cacheExpirationSeconds === 'number') {

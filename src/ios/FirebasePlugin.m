@@ -1750,6 +1750,33 @@ static NSMutableArray* pendingGlobalJS = nil;
     }];
 }
 
+- (void)getAppInstanceId:(CDVInvokedUrlCommand*)command {
+    [self.commandDelegate runInBackground:^{
+        @try {
+            NSString *appInstanceID = [FIRAnalytics appInstanceID];
+
+            CDVPluginResult *pluginResult = nil;
+
+            if (appInstanceID != nil && appInstanceID.length > 0) {
+                pluginResult = [CDVPluginResult
+                                resultWithStatus:CDVCommandStatus_OK
+                                messageAsString:appInstanceID];
+            } else {
+                NSString *errorMessage = @"Failed to get app instance ID: value is nil or empty. Ensure Firebase Analytics is initialized and collection is enabled.";
+                pluginResult = [CDVPluginResult
+                                resultWithStatus:CDVCommandStatus_ERROR
+                                messageAsString:errorMessage];
+            }
+
+            [self.commandDelegate sendPluginResult:pluginResult
+                                        callbackId:command.callbackId];
+        }
+        @catch (NSException *exception) {
+            [self handlePluginExceptionWithContext:exception :command];
+        }
+    }];
+}
+
 /*
  * Crashlytics
  */
