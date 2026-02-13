@@ -77,6 +77,7 @@
 - (void)setUserId:(CDVInvokedUrlCommand*)command;
 - (void)setUserProperty:(CDVInvokedUrlCommand*)command;
 - (void)initiateOnDeviceConversionMeasurement:(CDVInvokedUrlCommand*)command;
+- (void)getAppInstanceId:(CDVInvokedUrlCommand*)command;
 
 // Crashlytics
 - (void)setCrashlyticsCollectionEnabled:(CDVInvokedUrlCommand*)command;

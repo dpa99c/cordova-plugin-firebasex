@@ -361,6 +361,9 @@ public class FirebasePlugin extends CordovaPlugin {
                 case "setUserProperty":
                     this.setUserProperty(callbackContext, args.getString(0), args.getString(1));
                     break;
+                case "getAppInstanceId":
+                    this.getAppInstanceId(callbackContext);
+                    break;
                 case "activateFetched":
                     this.activateFetched(callbackContext);
                     break;
@@ -1156,6 +1159,19 @@ public class FirebasePlugin extends CordovaPlugin {
                 try {
                     mFirebaseAnalytics.setUserProperty(name, value);
                     callbackContext.success();
+                } catch (Exception e) {
+                    handleExceptionWithContext(e, callbackContext);
+                }
+            }
+        });
+    }
+
+    private void getAppInstanceId(final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    handleTaskOutcomeWithStringResult(mFirebaseAnalytics.getAppInstanceId(), callbackContext);
                 } catch (Exception e) {
                     handleExceptionWithContext(e, callbackContext);
                 }
