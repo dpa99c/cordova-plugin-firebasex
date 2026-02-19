@@ -2,10 +2,9 @@ var helper = require("./helper");
 
 module.exports = function(context) {
 
-    // Add a build phase which runs a shell script that executes the Crashlytics
-    // run command line tool which uploads the debug symbols at build time.
+    // Crashlytics build phase has been removed since FirebaseCrashlytics pod is no longer included
     var xcodeProjectPath = helper.getXcodeProjectPath();
     helper.removeShellScriptBuildPhase(context, xcodeProjectPath);
-    helper.addShellScriptBuildPhase(context, xcodeProjectPath);
+    // helper.addShellScriptBuildPhase(context, xcodeProjectPath); // Commented out - Crashlytics removed
     helper.addGoogleTagManagerContainer(context, xcodeProjectPath);
 };

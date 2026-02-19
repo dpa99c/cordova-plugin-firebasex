@@ -898,6 +898,8 @@ i.e. the notification title, body, etc. will not. Therefore if you need the prop
 }
 ```
 
+If you add a `link` key in the `data` payload, its value is automatically appended on a new line to the `notification_body` when the plugin builds the displayed notification so that the link remains visible to the user.
+
 ### Android foreground notifications
 
 If the notification message arrives while the app is in the foreground, by default a system notification won't be displayed and the data will be passed to [onMessageReceived](#onMessageReceived).
