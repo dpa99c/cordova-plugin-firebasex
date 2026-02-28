@@ -1,47 +1,23 @@
 {
-  "name": "cordova-plugin-firebasex",
-  "version": "19.1.0",
-  "description": "Cordova plugin for Google Firebase",
-  "types": "./types/index.d.ts",
-  "author": {
-    "name": "Dave Alden"
-  },
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dpa99c/cordova-plugin-firebase"
-  },
-  "cordova": {
-    "id": "cordova-plugin-firebase",
-    "platforms": [
-      "android",
-      "ios"
-    ]
-  },
-  "keywords": [
-    "ecosystem:cordova",
-    "cordova-android",
-    "cordova-ios",
-    "firebase",
-    "push",
-    "notifications",
-    "phone auth"
-  ],
-  "scripts": {
-    "version": "node ./bump-version.js && git add -A plugin.xml",
-    "postversion": "git push && git push --tags && npm publish --verbose",
-    "postinstall": "node ./scripts/post_install.js",
-    "test": "npm run test:ios && npm run test:android",
-    "test:ios": "bash ./test/test-default.sh 9.0.0 ios 5.0.1",
-    "test:android": "bash ./test/test-default.sh 9.0.0 android 8.1.0 && bash ./test/test-with-3-plugins.sh 9.0.0 android 8.1.0 cordova-plugin-request-location-accuracy cordova-android-play-services-gradle-release cordova-android-firebase-gradle-release"
-  },
-  "dependencies": {
-    "plist": "^3.0.1",
-    "semver": "^7.3.2",
-    "xcode": "^3.0.1",
-    "xml-js": "^1.6.11"
-  },
-  "devDependencies": {
-    "cordova-ios": "*"
-  }
+    "name": "cordova-plugin-firebasex",
+    "version": "20.0.0",
+    "description": "Backward-compatible wrapper that installs all cordova-plugin-firebasex modular plugins",
+    "license": "MIT",
+    "cordova": {
+        "id": "cordova-plugin-firebasex",
+        "platforms": ["android", "ios"]
+    },
+    "keywords": ["cordova", "firebase", "firebasex"],
+    "dependencies": {
+        "cordova-plugin-firebasex-core": ">=1.0.0",
+        "cordova-plugin-firebasex-analytics": ">=1.0.0",
+        "cordova-plugin-firebasex-messaging": ">=1.0.0",
+        "cordova-plugin-firebasex-auth": ">=1.0.0",
+        "cordova-plugin-firebasex-crashlytics": ">=1.0.0",
+        "cordova-plugin-firebasex-firestore": ">=1.0.0",
+        "cordova-plugin-firebasex-functions": ">=1.0.0",
+        "cordova-plugin-firebasex-config": ">=1.0.0",
+        "cordova-plugin-firebasex-performance": ">=1.0.0",
+        "cordova-plugin-firebasex-inappmessaging": ">=1.0.0"
+    }
 }
