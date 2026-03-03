@@ -132,6 +132,10 @@
 
 		<preference name="IOS_USE_PRECOMPILED_FIRESTORE_POD" default="false" />
 		<preference name="IOS_FCM_ENABLED" default="true" />
+		<preference name="IOS_FIREBASE_POD_VERSION" default="11.5.0" />
+		<preference name="IOS_FIREBASE_POD_BETA_VERSION" default="11.5.0-beta" />
+		<preference name="IOS_GOOGLE_SIGN_IN_POD_VERSION" default="7.0.0" />
+		<preference name="IOS_GOOGLE_TAG_MANAGER_POD_VERSION" default="8.0.0" />
 
 		<js-module name="FirebasePlugin" src="www/firebase.js">
 			<clobbers target="FirebasePlugin" />
@@ -180,22 +184,21 @@
 				<source url="https://cdn.cocoapods.org/"/>
 			</config>
 			<pods use-frameworks="true">
-				<pod name="FirebaseCore" spec="12.9.0"/>
-				<pod name="FirebaseCoreExtension" spec="12.9.0"/>
-				<pod name="FirebaseAuth" spec="12.9.0"/>
-				<pod name="FirebaseAnalytics/Core" spec="12.9.0"/>
-				<pod name="FirebaseAnalytics/IdentitySupport" spec="12.9.0"/>
-				<!--<pod name="GoogleAdsOnDeviceConversion" spec="3.1.0"/>-->
-				<pod name="FirebaseMessaging" spec="12.9.0"/>
-				<pod name="FirebasePerformance" spec="12.9.0"/>
-				<pod name="FirebaseRemoteConfig" spec="12.9.0"/>
-				<pod name="FirebaseInAppMessaging" spec="12.9.0-beta"/>
-				<pod name="FirebaseFirestore" spec="12.9.0"/>
-				<pod name="FirebaseCrashlytics" spec="12.9.0"/>
-				<pod name="FirebaseFunctions" spec="12.9.0"/>
-				<pod name="FirebaseInstallations" spec="12.9.0"/>
-				<pod name="GoogleSignIn" spec="9.0.0"/>
-				<pod name="GoogleTagManager" spec="9.0.0"/>
+				<pod name="FirebaseCore" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseCoreExtension" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseAuth" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseAnalytics" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<!--<pod name="FirebaseAnalyticsOnDeviceConversion" spec="11.5.0"/>-->
+				<pod name="FirebaseMessaging" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebasePerformance" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseRemoteConfig" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseInAppMessaging" spec="$IOS_FIREBASE_POD_BETA_VERSION"/>
+				<pod name="FirebaseFirestore" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseCrashlytics" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseFunctions" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="FirebaseInstallations" spec="$IOS_FIREBASE_POD_VERSION"/>
+				<pod name="GoogleSignIn" spec="$IOS_GOOGLE_SIGN_IN_POD_VERSION"/>
+				<pod name="GoogleTagManager" spec="$IOS_GOOGLE_TAG_MANAGER_POD_VERSION"/>
 			</pods>
 		</podspec>
 
