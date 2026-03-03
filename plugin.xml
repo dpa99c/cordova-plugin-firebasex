@@ -15,39 +15,101 @@
     </engines>
 
     <!--
-        All plugin variables are forwarded to the sub-plugins.
-        Listed here so users can pass them via the wrapper.
+        All plugin variables are declared here so users can pass them via the wrapper.
+        Each variable is forwarded to the corresponding modular sub-plugin via
+        <variable> elements on the <dependency> declarations below.
+
+        Variables use the same defaults as the modular plugins they target.
+        Users can override any variable at install time:
+            cordova plugin add cordova-plugin-firebasex \-\-variable FIREBASE_ANALYTICS_WITHOUT_ADS=true
     -->
-    <!-- Core -->
+
+    <!-- Core variables -->
+    <preference name="ANDROID_FIREBASE_CORE_VERSION" default="21.1.1" />
+    <preference name="ANDROID_FIREBASE_INSTALLATIONS_VERSION" default="18.0.0" />
+    <preference name="ANDROID_GSON_VERSION" default="2.10.1" />
+    <preference name="IOS_FIREBASE_SDK_VERSION" default="12.9.0" />
     <preference name="ANDROID_ICON_ACCENT" default="#FF00FFFF" />
     <preference name="IOS_STRIP_DEBUG" default="false" />
 
-    <!-- Analytics -->
+    <!-- Analytics variables -->
     <preference name="FIREBASE_ANALYTICS_COLLECTION_ENABLED" default="true" />
     <preference name="FIREBASE_ANALYTICS_WITHOUT_ADS" default="false" />
+    <preference name="GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED" default="true" />
+    <preference name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE" default="true" />
+    <preference name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE" default="true" />
+    <preference name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA" default="true" />
+    <preference name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS" default="true" />
     <preference name="IOS_ON_DEVICE_CONVERSION_ANALYTICS" default="false" />
 
-    <!-- Crashlytics -->
+    <!-- Messaging variables -->
+    <preference name="FIREBASE_FCM_AUTOINIT_ENABLED" default="true" />
+    <preference name="FIREBASE_MESSAGING_IMMEDIATE_PAYLOAD_DELIVERY" default="false" />
+    <preference name="IOS_FCM_ENABLED" default="true" />
+    <preference name="IOS_ENABLE_CRITICAL_ALERTS_ENABLED" default="false" />
+
+    <!-- Auth variables -->
+    <preference name="SETUP_RECAPTCHA_VERIFICATION" default="false" />
+    <preference name="IOS_ENABLE_APPLE_SIGNIN" default="false" />
+    <preference name="IOS_GOOGLE_SIGIN_VERSION" default="9.0.0" />
+
+    <!-- Crashlytics variables -->
     <preference name="FIREBASE_CRASHLYTICS_COLLECTION_ENABLED" default="true" />
 
-    <!-- Performance -->
+    <!-- Performance variables -->
     <preference name="FIREBASE_PERFORMANCE_COLLECTION_ENABLED" default="true" />
     <preference name="ANDROID_FIREBASE_PERFORMANCE_MONITORING" default="false" />
     <preference name="ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION" default="2.0.1" />
 
-    <!-- Firestore -->
+    <!-- Firestore variables -->
     <preference name="IOS_USE_PRECOMPILED_FIRESTORE_POD" default="false" />
 
-    <!-- Dependencies on all modular plugins -->
-    <dependency id="cordova-plugin-firebasex-core" />
-    <dependency id="cordova-plugin-firebasex-analytics" />
-    <dependency id="cordova-plugin-firebasex-messaging" />
-    <dependency id="cordova-plugin-firebasex-auth" />
-    <dependency id="cordova-plugin-firebasex-crashlytics" />
-    <dependency id="cordova-plugin-firebasex-firestore" />
+    <!--
+        Dependencies on all modular plugins.
+        Plugin variables are forwarded via <variable> elements so that user overrides
+        specified when installing this wrapper are propagated to each sub-plugin.
+    -->
+    <dependency id="cordova-plugin-firebasex-core">
+        <variable name="ANDROID_FIREBASE_CORE_VERSION" value="$ANDROID_FIREBASE_CORE_VERSION" />
+        <variable name="ANDROID_FIREBASE_INSTALLATIONS_VERSION" value="$ANDROID_FIREBASE_INSTALLATIONS_VERSION" />
+        <variable name="ANDROID_GSON_VERSION" value="$ANDROID_GSON_VERSION" />
+        <variable name="IOS_FIREBASE_SDK_VERSION" value="$IOS_FIREBASE_SDK_VERSION" />
+    </dependency>
+    <dependency id="cordova-plugin-firebasex-analytics">
+        <variable name="FIREBASE_ANALYTICS_COLLECTION_ENABLED" value="$FIREBASE_ANALYTICS_COLLECTION_ENABLED" />
+        <variable name="FIREBASE_ANALYTICS_WITHOUT_ADS" value="$FIREBASE_ANALYTICS_WITHOUT_ADS" />
+        <variable name="GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED" value="$GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED" />
+        <variable name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE" value="$GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE" />
+        <variable name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE" value="$GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE" />
+        <variable name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA" value="$GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA" />
+        <variable name="GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS" value="$GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS" />
+        <variable name="IOS_ON_DEVICE_CONVERSION_ANALYTICS" value="$IOS_ON_DEVICE_CONVERSION_ANALYTICS" />
+    </dependency>
+    <dependency id="cordova-plugin-firebasex-messaging">
+        <variable name="FIREBASE_FCM_AUTOINIT_ENABLED" value="$FIREBASE_FCM_AUTOINIT_ENABLED" />
+        <variable name="FIREBASE_MESSAGING_IMMEDIATE_PAYLOAD_DELIVERY" value="$FIREBASE_MESSAGING_IMMEDIATE_PAYLOAD_DELIVERY" />
+        <variable name="IOS_FCM_ENABLED" value="$IOS_FCM_ENABLED" />
+        <variable name="IOS_ENABLE_CRITICAL_ALERTS_ENABLED" value="$IOS_ENABLE_CRITICAL_ALERTS_ENABLED" />
+        <variable name="IOS_FIREBASE_SDK_VERSION" value="$IOS_FIREBASE_SDK_VERSION" />
+    </dependency>
+    <dependency id="cordova-plugin-firebasex-auth">
+        <variable name="SETUP_RECAPTCHA_VERIFICATION" value="$SETUP_RECAPTCHA_VERIFICATION" />
+        <variable name="IOS_ENABLE_APPLE_SIGNIN" value="$IOS_ENABLE_APPLE_SIGNIN" />
+        <variable name="IOS_GOOGLE_SIGIN_VERSION" value="$IOS_GOOGLE_SIGIN_VERSION" />
+    </dependency>
+    <dependency id="cordova-plugin-firebasex-crashlytics">
+        <variable name="FIREBASE_CRASHLYTICS_COLLECTION_ENABLED" value="$FIREBASE_CRASHLYTICS_COLLECTION_ENABLED" />
+    </dependency>
+    <dependency id="cordova-plugin-firebasex-firestore">
+        <variable name="IOS_USE_PRECOMPILED_FIRESTORE_POD" value="$IOS_USE_PRECOMPILED_FIRESTORE_POD" />
+    </dependency>
     <dependency id="cordova-plugin-firebasex-functions" />
     <dependency id="cordova-plugin-firebasex-config" />
-    <dependency id="cordova-plugin-firebasex-performance" />
+    <dependency id="cordova-plugin-firebasex-performance">
+        <variable name="FIREBASE_PERFORMANCE_COLLECTION_ENABLED" value="$FIREBASE_PERFORMANCE_COLLECTION_ENABLED" />
+        <variable name="ANDROID_FIREBASE_PERFORMANCE_MONITORING" value="$ANDROID_FIREBASE_PERFORMANCE_MONITORING" />
+        <variable name="ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION" value="$ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION" />
+    </dependency>
     <dependency id="cordova-plugin-firebasex-inappmessaging" />
 
     <js-module src="www/firebase.js" name="FirebasePlugin">
