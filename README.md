@@ -2,8 +2,14 @@
 
 The repo now contains a backward-compatible wrapper meta-plugin that installs all `cordova-plugin-firebasex` modular plugins.
 
+*********
+
 # DEPRECATED
-As of v20, this original monolithic FirebaseX plugin is deprecated in favour the new modular plugin architecture:
+As of v20, this original monolithic FirebaseX plugin is deprecated in favour the new modular plugin architecture.
+
+*********
+
+# Modular Plugins
 
 - [cordova-plugin-firebasex-core](https://github.com/dpa99c/cordova-plugin-firebasex-core/) - Firebase initialization, config file handling
 - [cordova-plugin-firebasex-analytics](https://github.com/dpa99c/cordova-plugin-firebasex-analytics/) - Firebase Analytics
@@ -22,8 +28,6 @@ If you wish to use this monolithic version of the plugin, you can still install 
 However there will be no further updates or fixes to this monolithic plugin.
 
 *********
-
-
 
 ## Installation
 
