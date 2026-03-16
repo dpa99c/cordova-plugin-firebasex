@@ -2044,10 +2044,20 @@ You can disable autoinit on first run and therefore prevent an FCM token being a
 
     cordova plugin add cordova-plugin-firebasex --variable FIREBASE_FCM_AUTOINIT_ENABLED=false
 
-**Parameters**: None
+**Parameters**:
+
+-   {function} success - (optional) callback function to call on successful execution of operation.
+-   {function} error - (optional) callback function which will be passed a {string} error message as an argument
 
 ```javascript
-FirebasePlugin.unregister();
+FirebasePlugin.unregister(
+    function () {
+        console.log("Unregistered from FCM");
+    },
+    function (error) {
+        console.error("Error unregistering from FCM: " + error);
+    }
+);
 ```
 
 ### isAutoInitEnabled
