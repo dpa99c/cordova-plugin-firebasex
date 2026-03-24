@@ -228,7 +228,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_ANALYTICS_VERSION` | `23.0.0` | Android Firebase Analytics SDK version. |
-| `ANDROID_PLAY_SERVICES_TAGMANAGER_VERSION` | `18.1.1` | Android Play Services Tag Manager version. |
+| `ANDROID_PLAY_SERVICES_TAGMANAGER_VERSION` | `18.3.0` | Android Play Services Tag Manager version. |
 | `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for analytics pods). |
 | `IOS_GOOGLE_TAG_MANAGER_VERSION` | `9.0.0` | iOS Google Tag Manager pod version. |
 | `FIREBASE_ANALYTICS_COLLECTION_ENABLED` | `true` | Enable/disable analytics collection at startup. |
@@ -245,6 +245,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_MESSAGING_VERSION` | `25.0.1` | Android Firebase Messaging SDK version. |
+| `ANDROID_ICON_ACCENT` | `#FFFFFF` | Default accent color for Android notification icons. |
 | `FIREBASE_FCM_AUTOINIT_ENABLED` | `true` | Auto-initialize FCM on app launch. |
 | `FIREBASE_MESSAGING_IMMEDIATE_PAYLOAD_DELIVERY` | `false` | Deliver notification payloads immediately (iOS). |
 | `IOS_FCM_ENABLED` | `true` | Enable FCM on iOS. |
@@ -256,9 +257,9 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_AUTH_VERSION` | `24.0.1` | Android Firebase Auth SDK version. |
-| `ANDROID_PLAY_SERVICES_AUTH_VERSION` | `21.3.0` | Android Play Services Auth version. |
-| `ANDROID_CREDENTIALS_VERSION` | `1.3.0` | AndroidX Credentials library version. |
-| `ANDROID_GOOGLEID_VERSION` | `1.1.1` | Google Identity library version. |
+| `ANDROID_PLAY_SERVICES_AUTH_VERSION` | `21.5.1` | Android Play Services Auth version. |
+| `ANDROID_CREDENTIALS_VERSION` | `1.5.0` | AndroidX Credentials library version. |
+| `ANDROID_GOOGLEID_VERSION` | `1.2.0` | Google Identity library version. |
 | `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for auth pod). |
 | `SETUP_RECAPTCHA_VERIFICATION` | `false` | Add reversed client ID URL scheme for reCAPTCHA. |
 | `IOS_ENABLE_APPLE_SIGNIN` | `false` | Add Apple Sign-In entitlement (iOS). |
@@ -422,7 +423,7 @@ cordova plugin add cordova-plugin-firebasex-analytics \
 
 - **`GoogleService-Info.plist` and `google-services.json`** are still required in your project root. The core plugin handles copying them to the platform directories.
 - **Custom FCM receivers** (`FirebasePluginMessageReceiver` subclasses) still work. The messaging plugin includes the receiver manager infrastructure.
-- **Notification icons and accent colors** are configured via the core plugin's `ANDROID_ICON_ACCENT` variable and resource files, just as before.
+- **Notification icons and accent colors** are configured via the messaging plugin's `ANDROID_ICON_ACCENT` variable and resource files, just as before.
 
 ---
 
