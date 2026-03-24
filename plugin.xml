@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         id="cordova-plugin-firebasex"
-        version="20.0.0">
+        version="20.0.1">
 
     <name>cordova-plugin-firebasex</name>
     <description>Backward-compatible wrapper that installs all cordova-plugin-firebasex modular plugins</description>
