@@ -162,7 +162,7 @@
     </dependency>
     <dependency id="cordova-plugin-firebasex-inappmessaging">
         <variable name="ANDROID_FIREBASE_INAPPMESSAGING_VERSION" value="$ANDROID_FIREBASE_INAPPMESSAGING_VERSION" />
-        <variable name="IOS_FIREBASE_SDK_VERSION" value="$IOS_FIREBASE_SDK_BETA_VERSION" />
+        <variable name="IOS_FIREBASE_SDK_BETA_VERSION" value="$IOS_FIREBASE_SDK_BETA_VERSION" />
     </dependency>
 
     <js-module src="www/firebase.js" name="FirebasePlugin">
