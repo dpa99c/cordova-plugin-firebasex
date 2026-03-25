@@ -9,15 +9,15 @@
     },
     "keywords": ["cordova", "firebase", "firebasex"],
     "dependencies": {
-        "cordova-plugin-firebasex-core": ">=1.0.0",
-        "cordova-plugin-firebasex-analytics": ">=1.0.0",
-        "cordova-plugin-firebasex-messaging": ">=1.0.0",
-        "cordova-plugin-firebasex-auth": ">=1.0.0",
-        "cordova-plugin-firebasex-crashlytics": ">=1.0.0",
-        "cordova-plugin-firebasex-firestore": ">=1.0.0",
-        "cordova-plugin-firebasex-functions": ">=1.0.0",
-        "cordova-plugin-firebasex-config": ">=1.0.0",
-        "cordova-plugin-firebasex-performance": ">=1.0.0",
-        "cordova-plugin-firebasex-inappmessaging": ">=1.0.0"
+        "cordova-plugin-firebasex-core": "github:dpa99c/cordova-plugin-firebasex-core#main",
+        "cordova-plugin-firebasex-analytics": "github:dpa99c/cordova-plugin-firebasex-analytics#main",
+        "cordova-plugin-firebasex-messaging": "github:dpa99c/cordova-plugin-firebasex-messaging#main",
+        "cordova-plugin-firebasex-auth": "github:dpa99c/cordova-plugin-firebasex-auth#main",
+        "cordova-plugin-firebasex-crashlytics": "github:dpa99c/cordova-plugin-firebasex-crashlytics#main",
+        "cordova-plugin-firebasex-firestore": "github:dpa99c/cordova-plugin-firebasex-firestore#main",
+        "cordova-plugin-firebasex-functions": "github:dpa99c/cordova-plugin-firebasex-functions#main",
+        "cordova-plugin-firebasex-config": "github:dpa99c/cordova-plugin-firebasex-config#main",
+        "cordova-plugin-firebasex-performance": "github:dpa99c/cordova-plugin-firebasex-performance#main",
+        "cordova-plugin-firebasex-inappmessaging": "github:dpa99c/cordova-plugin-firebasex-inappmessaging#main"
     }
 }
