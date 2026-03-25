@@ -29,6 +29,7 @@
     <preference name="ANDROID_FIREBASE_INSTALLATIONS_VERSION" default="18.0.0" />
     <preference name="ANDROID_GSON_VERSION" default="2.13.2" />
     <preference name="IOS_FIREBASE_SDK_VERSION" default="12.9.0" />
+    <preference name="IOS_FIREBASE_SDK_BETA_VERSION" default="12.9.0-beta" />
     <preference name="IOS_STRIP_DEBUG" default="false" />
 
     <!-- Analytics variables -->
@@ -161,7 +162,7 @@
     </dependency>
     <dependency id="cordova-plugin-firebasex-inappmessaging">
         <variable name="ANDROID_FIREBASE_INAPPMESSAGING_VERSION" value="$ANDROID_FIREBASE_INAPPMESSAGING_VERSION" />
-        <variable name="IOS_FIREBASE_SDK_VERSION" value="$IOS_FIREBASE_SDK_VERSION" />
+        <variable name="IOS_FIREBASE_SDK_VERSION" value="$IOS_FIREBASE_SDK_BETA_VERSION" />
     </dependency>
 
     <js-module src="www/firebase.js" name="FirebasePlugin">
