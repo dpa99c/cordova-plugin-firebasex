@@ -1,5 +1,6 @@
 # Version 20.0.1
 (android) Fix plugin variables and pinned dependency versions.
+(ios) update inappmessaging plugin to use IOS_FIREBASE_SDK_BETA_VERSION to separate beta and release versions.
 
 # Version 20.0.0
 **DEPRECATION NOTICE**: This original monolithic `cordova-plugin-firebasex` plugin is now deprecated and will no longer receive updates. 
