@@ -1,3 +1,12 @@
+# Version 20.0.1
+(android) Fix plugin variables and pinned dependency versions.
+(ios) update inappmessaging plugin to use IOS_FIREBASE_SDK_BETA_VERSION to separate beta and release versions.
+
+# Version 20.0.0
+**DEPRECATION NOTICE**: This original monolithic `cordova-plugin-firebasex` plugin is now deprecated and will no longer receive updates. 
+Please migrate to the new modular plugins as soon as possible. See the [migration guide](./MIGRATION.md) for more information.
+
+
 # Version 19.1.0
 * (ios) Update `getXcodeProjectPath` to support cordova-ios 8.x.
     * Merged from PR [#964](https://github.com/dpa99c/cordova-plugin-firebasex/pull/964)
