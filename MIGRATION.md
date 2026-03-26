@@ -68,15 +68,15 @@ Note: The `--nosave` flag prevents changes to `config.xml` and `package.json`, p
 #### Step 2: Install the wrapper
 
 ```bash
-cordova plugin add cordova-plugin-firebasex@20.0.0
+cordova plugin add cordova-plugin-firebasex@20
 ```
 
-> **Note:** Version 20.0.0+ of `cordova-plugin-firebasex` is the modular wrapper. It declares dependencies on all 10 sub-plugins and re-exports their APIs.
+> **Note:** Version 20.x.x of `cordova-plugin-firebasex` is the modular wrapper. It declares dependencies on all 10 sub-plugins and re-exports their APIs.
 
 If you were passing plugin variables at install time, the wrapper accepts all the same variables and forwards them to the appropriate sub-plugins:
 
 ```bash
-cordova plugin add cordova-plugin-firebasex@20.0.0 \
+cordova plugin add cordova-plugin-firebasex@20 \
   --variable FIREBASE_ANALYTICS_WITHOUT_ADS=true \
   --variable IOS_ENABLE_APPLE_SIGNIN=true
 ```
