@@ -314,7 +314,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_INAPPMESSAGING_VERSION` | `22.0.2` | Android Firebase In-App Messaging SDK version. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0-beta` | iOS Firebase SDK version (for inappmessaging pod). |
+| `IOS_FIREBASE_SDK_BETA_VERSION` | `12.9.0-beta` | iOS Firebase SDK version (for inappmessaging pod). |
 
 ### Variable Resolution Order
 
