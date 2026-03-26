@@ -24,7 +24,7 @@ As of v20, this original monolithic FirebaseX plugin is deprecated in favour the
 
 You are encouraged to [migrate to the new modular plugins](./MIGRATION.md) for better performance, smaller app size, and more flexible dependency management.
 
-If you wish to use this monolithic version of the plugin, you can still install it as `cordova-plugin-firebasex@19`. 
+If you wish to use this monolithic version of the plugin, you can still install it as `cordova-plugin-firebasex@19` - see [the legacy documentation](./README.legacy.md) for details on the API and plugin variables of the monolithic plugin.
 However there will be no further updates or fixes to this monolithic plugin.
 
 *********
