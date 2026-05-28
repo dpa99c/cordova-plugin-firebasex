@@ -1,3 +1,7 @@
+# Unreleased
+* (ios) Migrate the modular plugins to Swift Package Manager on `cordova-ios@8+`, while retaining CocoaPods fallback metadata.
+* (ios) Update wrapper and test project documentation for the Swift Package Manager iOS path and scope `IOS_USE_PRECOMPILED_FIRESTORE_POD` to CocoaPods fallback only.
+
 # Version 20.0.1
 (android) Fix plugin variables and pinned dependency versions.
 (ios) update inappmessaging plugin to use IOS_FIREBASE_SDK_BETA_VERSION to separate beta and release versions.

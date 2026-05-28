@@ -4,6 +4,8 @@ Brings push notifications, analytics, event tracking, crash reporting and more f
 
 Supported platforms: Android and iOS
 
+This legacy documentation applies to the deprecated monolithic plugin line (`cordova-plugin-firebasex@19.x` and earlier), which continues to use CocoaPods for iOS dependency integration. The modular wrapper in `20.x` uses Swift Package Manager on `cordova-ios@8+`; see [README.md](./README.md) and [MIGRATION.md](./MIGRATION.md) for the current path.
+
 **IMPORTANT:** Before opening an issue against this plugin, please read [Reporting issues](#reporting-issues).
 
 <!-- DONATE -->

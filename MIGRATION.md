@@ -85,6 +85,12 @@ cordova plugin add cordova-plugin-firebasex@20 \
 
 Your existing code using `FirebasePlugin.*` will continue to work with no changes.
 
+#### iOS dependency manager notes
+
+For `cordova-ios@8+`, the modular plugins use Swift Package Manager for iOS Firebase dependencies. That means there is no Podfile maintenance step on the primary path, and Xcode builds should open `App.xcodeproj` rather than an `.xcworkspace` generated for CocoaPods.
+
+If you are still on `cordova-ios@7.x`, the retained CocoaPods fallback remains available. In that fallback mode, existing Podfile- and workspace-based behaviour still applies.
+
 ---
 
 ### Path B: Individual Modular Plugins (Recommended)
@@ -221,7 +227,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | `ANDROID_FIREBASE_CORE_VERSION` | `21.1.1` | Android Firebase BoM / core SDK version. |
 | `ANDROID_FIREBASE_INSTALLATIONS_VERSION` | `18.0.0` | Android Firebase Installations SDK version. |
 | `ANDROID_GSON_VERSION` | `2.13.2` | Google Gson library version for Android. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (CocoaPods). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for Swift Package Manager and CocoaPods fallback. |
 
 #### Analytics (`cordova-plugin-firebasex-analytics`)
 
@@ -229,8 +235,8 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_ANALYTICS_VERSION` | `23.0.0` | Android Firebase Analytics SDK version. |
 | `ANDROID_PLAY_SERVICES_TAGMANAGER_VERSION` | `18.3.0` | Android Play Services Tag Manager version. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for analytics pods). |
-| `IOS_GOOGLE_TAG_MANAGER_VERSION` | `9.0.0` | iOS Google Tag Manager pod version. |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for analytics Swift packages and CocoaPods fallback. |
+| `IOS_GOOGLE_TAG_MANAGER_VERSION` | `9.0.0` | iOS Google Tag Manager Swift package / pod version. |
 | `FIREBASE_ANALYTICS_COLLECTION_ENABLED` | `true` | Enable/disable analytics collection at startup. |
 | `FIREBASE_ANALYTICS_WITHOUT_ADS` | `false` | Use `FirebaseAnalyticsWithoutAdIdSupport` pod (no IDFA). |
 | `GOOGLE_ANALYTICS_ADID_COLLECTION_ENABLED` | `true` | Enable advertising ID collection. |
@@ -250,7 +256,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | `FIREBASE_MESSAGING_IMMEDIATE_PAYLOAD_DELIVERY` | `false` | Deliver notification payloads immediately (iOS). |
 | `IOS_FCM_ENABLED` | `true` | Enable FCM on iOS. |
 | `IOS_ENABLE_CRITICAL_ALERTS_ENABLED` | `false` | Enable critical alerts capability (iOS). |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for messaging pod). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for messaging Swift packages and CocoaPods fallback. |
 
 #### Auth (`cordova-plugin-firebasex-auth`)
 
@@ -260,10 +266,10 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | `ANDROID_PLAY_SERVICES_AUTH_VERSION` | `21.5.1` | Android Play Services Auth version. |
 | `ANDROID_CREDENTIALS_VERSION` | `1.5.0` | AndroidX Credentials library version. |
 | `ANDROID_GOOGLEID_VERSION` | `1.2.0` | Google Identity library version. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for auth pod). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for auth Swift packages and CocoaPods fallback. |
 | `SETUP_RECAPTCHA_VERIFICATION` | `false` | Add reversed client ID URL scheme for reCAPTCHA. |
 | `IOS_ENABLE_APPLE_SIGNIN` | `false` | Add Apple Sign-In entitlement (iOS). |
-| `IOS_GOOGLE_SIGIN_VERSION` | `9.0.0` | GoogleSignIn pod version (iOS). |
+| `IOS_GOOGLE_SIGIN_VERSION` | `9.0.0` | GoogleSignIn Swift package / pod version on iOS. |
 
 #### Crashlytics (`cordova-plugin-firebasex-crashlytics`)
 
@@ -271,7 +277,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_CRASHLYTICS_VERSION` | `20.0.4` | Android Firebase Crashlytics SDK version. |
 | `ANDROID_FIREBASE_CRASHLYTICS_NDK_VERSION` | `20.0.4` | Android Firebase Crashlytics NDK version. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for crashlytics pod). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for Crashlytics Swift packages and CocoaPods fallback. |
 | `FIREBASE_CRASHLYTICS_COLLECTION_ENABLED` | `true` | Enable/disable Crashlytics at startup. |
 
 #### Performance (`cordova-plugin-firebasex-performance`)
@@ -279,7 +285,7 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_PERF_VERSION` | `22.0.2` | Android Firebase Performance SDK version. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for performance pod). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for performance Swift packages and CocoaPods fallback. |
 | `FIREBASE_PERFORMANCE_COLLECTION_ENABLED` | `true` | Enable/disable performance collection. |
 | `ANDROID_FIREBASE_PERFORMANCE_MONITORING` | `false` | Add Firebase Perf Gradle plugin (Android). |
 | `ANDROID_FIREBASE_PERF_GRADLE_PLUGIN_VERSION` | `2.0.1` | Firebase Perf Gradle plugin version. |
@@ -291,8 +297,8 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 | `ANDROID_FIREBASE_FIRESTORE_VERSION` | `26.1.0` | Android Firebase Firestore SDK version. |
 | `ANDROID_GRPC_OKHTTP` | `1.75.0` | Android gRPC OkHttp version (Firestore dependency). |
 | `ANDROID_GSON_VERSION` | `2.13.2` | Google Gson library version (Firestore dependency). |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for firestore pod). |
-| `IOS_USE_PRECOMPILED_FIRESTORE_POD` | `false` | Use precompiled Firestore pod for faster builds. |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for Firestore Swift packages and CocoaPods fallback. |
+| `IOS_USE_PRECOMPILED_FIRESTORE_POD` | `false` | Use the precompiled Firestore pod for CocoaPods fallback builds only; ignored by Swift Package Manager. |
 
 #### Functions (`cordova-plugin-firebasex-functions`)
 
@@ -300,14 +306,14 @@ Each modular plugin defines its own set of configurable variables. Below is the 
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_FUNCTIONS_VERSION` | `22.1.0` | Android Firebase Functions SDK version. |
 | `ANDROID_GSON_VERSION` | `2.13.2` | Google Gson library version (Functions dependency). |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for functions pod). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for functions Swift packages and CocoaPods fallback. |
 
 #### Config (`cordova-plugin-firebasex-config`)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ANDROID_FIREBASE_CONFIG_VERSION` | `23.0.1` | Android Firebase Remote Config SDK version. |
-| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version (for config pod). |
+| `IOS_FIREBASE_SDK_VERSION` | `12.9.0` | iOS Firebase SDK version for config Swift packages and CocoaPods fallback. |
 
 #### In-App Messaging (`cordova-plugin-firebasex-inappmessaging`)
 

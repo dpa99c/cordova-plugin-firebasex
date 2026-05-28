@@ -37,6 +37,8 @@ cordova plugin add cordova-plugin-firebasex@latest
 
 This installs all of the above modular plugins and re-exports their APIs under the unified `FirebasePlugin` global, maintaining backward compatibility with the original monolithic plugin.
 
+On iOS, `cordova-ios@8+` uses Swift Package Manager for the Firebase SDK dependencies exposed by the modular plugins. No Podfile or `pod install` step is required on that path, and you should open the generated `App.xcodeproj` in Xcode. `cordova-ios@7.x` continues to use the retained CocoaPods fallback.
+
 ## Migration to Modular Plugins
 
 See [the migration guide](./MIGRATION.md) for more details on migrating to the new modular plugins and how to manage plugin variables in the new architecture.
@@ -54,6 +56,8 @@ FirebasePlugin.getToken(function(token) {
 ## Plugin variables
 This wrapper plugin re-exports all plugin variables as defined for the original monolithic plugin, and passes them through to the modular plugins.
 This means that all plugin variables defined in your `config.xml`/`package.json` for the original monolithic plugin will still be picked up and applied to the relevant modular plugins.
+
+On iOS, the shared `IOS_FIREBASE_SDK_VERSION`, `IOS_GOOGLE_TAG_MANAGER_VERSION`, and `IOS_GOOGLE_SIGIN_VERSION` values now drive Swift Package Manager manifests for `cordova-ios@8+`. `IOS_USE_PRECOMPILED_FIRESTORE_POD` only affects the CocoaPods fallback path and is ignored when Swift Package Manager is active.
 
 ## Legacy plugin documentation
 
