@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-firebasex",
-    "version": "20.0.1",
+    "version": "20.0.2",
     "description": "Backward-compatible wrapper that installs all cordova-plugin-firebasex modular plugins",
     "license": "MIT",
     "cordova": {

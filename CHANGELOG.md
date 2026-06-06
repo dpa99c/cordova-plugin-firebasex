@@ -1,6 +1,7 @@
-# Unreleased
+# 20.0.2
 * (ios) Migrate the modular plugins to Swift Package Manager on `cordova-ios@8+`, while retaining CocoaPods fallback metadata.
 * (ios) Update wrapper and test project documentation for the Swift Package Manager iOS path and scope `IOS_USE_PRECOMPILED_FIRESTORE_POD` to CocoaPods fallback only.
+* (android & ios) Update pinned Firebase SDK versions to latest versions as of 26 May 2026.
 
 # Version 20.0.1
 (android) Fix plugin variables and pinned dependency versions.
