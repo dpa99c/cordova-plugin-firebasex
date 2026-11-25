@@ -1,7 +1,7 @@
 {
   "name": "cordova-plugin-firebasex",
   "version": "16.1.0",
-  "description": "Cordova plugin for Google Firebase",
+  "description": "Cordova plugin for Google Firebase test",
   "types": "./types/index.d.ts",
   "author": {
     "name": "Dave Alden"
